@@ -113,13 +113,12 @@ end
 
 function result = obs_chest_c( model, trace, parameters, t )
 
-  for c = l2.getall(trace, t+1, 'chest_c', {NaN})
+  for c = l2.getall(trace, t, 'chest_c', {NaN})
     chest_c = c.arg{1};
 
-    result = {result{:} {t+1, 'observe', predicate('chest_c', chest_c)}};
+    result = {t+1, 'observe', predicate('chest_c',chest_c)};
   end
 end
-
 
 
 %oude cyclus
