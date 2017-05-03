@@ -5,9 +5,10 @@ function [ fncs ] = rules()
         fncs{i} = str2func(fncs{i});
     end
 end
+%h
 
 function result = anxiety( model, trace, parameters, t )
-    
+
     for sf = l2.getall(trace, t, 'sitfac', {NaN})
         sitfac = sf.arg{1};
 
@@ -19,7 +20,7 @@ function result = anxiety( model, trace, parameters, t )
         disfac = model.parameters.default.disfac;
         s = model.parameters.default.sitfac_anxiety;
         b = model.parameters.default.breathing_anxiety;
-    
+
         %dispositional factors affect the intensity of anxiety provoking
         %situations
         new_anxiety = prev_anxiety * decay + ...
@@ -30,7 +31,7 @@ function result = anxiety( model, trace, parameters, t )
 end
 
 function result = hr( model, trace, parameters, t )
-    
+
     %for p = l2.getall(trace, t+1, 'physical_state', {NaN})
     %    ps = p.arg{1};
 
@@ -49,8 +50,8 @@ function result = breathing_f( model, trace, parameters, t )
 
     %breathing_f = trace(t+1).breathing_f.arg{1};
     hr = trace(t+1).hr.arg{1};
-    h = model.parameters.default.hr_breathing; 
-    
+    h = model.parameters.default.hr_breathing;
+
     breathing_f_in_bpm = h * hr;
     breathing_f_new = breathing_f_in_bpm /60;
     %disp('breathing f in bpm')
@@ -65,11 +66,11 @@ function result = chest_c( model, trace, parameters, t )
     breathing_f = trace(t+1).breathing_f.arg{1};
     %breathing_f = n/s
     %n = breathing_f * s;
-    
+
     n = breathing_f * t * dt;   %number of breathing cycles
     phase = mod(n,1);     %the phase of the cycle: a number between 0 and 1
     %in this case the breathing cycle always starts at t=0
-    
+
     if phase < 0.5
         phi = phase;
     else
@@ -107,10 +108,10 @@ end
 %
 %    for c = l2.getall(trace, t+1, 'chest_pos', {NaN})
 %        chest_pos1 = c.arg{1};
-%     
+%
 %        for c2 = l2.getall(trace, t, 'chest_pos', {NaN})
 %            chest_pos2 = c2.arg{1};
-%        
+%
 %            if strcmp(chest_pos1,'in')
 %                chest_pos_new = 'rest';
 %            elseif strcmp(chest_pos1,'out')
@@ -143,19 +144,19 @@ end
 % arduino LED on.
 %function result = ddr2 (model, trace, parameters, t)
 %    result = {};
-%    
+%
 %    % Obtain lightsensor value from the trace
 %    for sensorPred = trace(t).lightvalue
 %        sensor_value = sensorPred.arg{1};
-%        
+%
 %        % Initialize light_pred value
 %        light_pred = '';
 %        % Define the pin that contains the LED
 %        pin = 'D4';
-%        
+%
 %        % If the value of the light sensor drops below a certain threshold
 %        if sensor_value <= 1
-%            display(sensor_value)               % Display the value actually obtained by the sensor (just to check) 
+%            display(sensor_value)               % Display the value actually obtained by the sensor (just to check)
 %            light_pred = 'On';                  % Set the predicate for the LED to on
 %            writeDigitalPin(model.controller, pin, 0);% Set the LED to the appropriate value (on)
 %        else
@@ -163,7 +164,7 @@ end
 %            light_pred = 'Off';
 %            writeDigitalPin(model.controller, pin, 1);
 %        end
-%        
+%
 %        % Return the predicate that indicates the LED status to the trace
 %        % (in order to keep track of what happened during the simulation)
 %        result = {t+1, 'light', {light_pred}};
