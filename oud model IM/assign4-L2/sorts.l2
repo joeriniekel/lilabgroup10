@@ -1,0 +1,11 @@
+
+MESSAGE;        {stay, raise, raise_more, raise_max}
+LEVEL;          {high, low}
+
+%--------------------------------------------------------------------------
+
+OBSERVATION;    {<cardiovascular_diseases>, <performance>}
+BELIEF;         {<feeling_of_loneliness>, <performance>, <cardiovascular_diseases>, <emotion_regulation_ability>, <expectation_about_others>, <level_of_vulnerability>, <social_activities>, <feeling>}
+DESIRE;         {<feeling_of_loneliness>, <feeling>, <social_activities>, <activity_engagement>, <message_to_h_activity_engagement>}
+ASSESSMENT;     {<feeling_of_loneliness>, <feeling>}
+PROPOSE;        {<message_to_h_activity_engagement>}

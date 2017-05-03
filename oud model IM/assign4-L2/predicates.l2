@@ -1,0 +1,27 @@
+training;                       {BOOLEAN}
+emotion_regulation_ability;     {REAL}
+expectation_about_others;       {REAL}
+
+level_of_vulnerability;         {LEVEL}
+
+activity_engagement;            {REAL}
+social_activities;              {REAL}
+
+feeling_of_loneliness;          {BOOLEAN}
+
+performance;                    {LEVEL}
+alcoholism;                     {REAL}
+cardiovascular_diseases;        {BOOLEAN}
+
+%--------------------------------------------------------------------------
+
+feeling;                        {REAL}
+message_to_h_activity_engagement; {MESSAGE}
+
+%--------------------------------------------------------------------------
+
+observation;                    {OBSERVATION}
+belief;                         {BELIEF}
+desire;                         {DESIRE}
+assessment;                     {ASSESSMENT}
+propose;                        {PROPOSE}
