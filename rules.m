@@ -5,7 +5,7 @@ function [ fncs ] = rules()
         fncs{i} = str2func(fncs{i});
     end
 end
-
+%Deze comment is een test voor git dus mag zo wel weer weg
 function result = anxiety( model, trace, parameters, t )
     
     for sf = l2.getall(trace, t, 'sitfac', {NaN})
