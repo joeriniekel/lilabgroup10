@@ -1,0 +1,14 @@
+%SWITCH;     {On, Off}
+
+OBSERVE;            {<erl>}
+BELIEF;             {<erl>}
+DESIRE;             {<erl>}
+PREDICT;            {<erl>}
+ASSUME;             {<erl>}
+DEVIATION;          {<erl>}
+SENS;               {<erl>}
+
+
+%POS;                {in,out,rest}
+POS;                {1 in, 2 rest, 3 out, in, out, rest}
+    %alphabetic ordering

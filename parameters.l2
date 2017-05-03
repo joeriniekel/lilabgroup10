@@ -1,0 +1,21 @@
+% bhr   = basic heart rate in bpm
+% max_chest_c = max_chest_circumfence in cm
+
+default(
+
+    dt;                  1
+            %the amount of seconds per time step
+    bhr;                90
+    max_chest_c;        80
+
+    %factors
+    disfac;             1.5
+
+    %factors for the strenth of relations between concepts
+    anxiety_decay;      0.05
+    sitfac_anxiety;     0.5
+    anxiety_hr;         0.1
+    hr_breathing;       0.08
+    breathing_anxiety;  0.5
+    
+)
