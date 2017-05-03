@@ -1,0 +1,19 @@
+default(
+	beta; 		0
+	w;			0
+	v1; 		0
+	a2; 		0
+	delta_t;	0
+	d_max;		0
+	erl_norm;	0
+)
+
+reappraisal(
+	beta; 		0
+	w;			0
+	v1; 		0
+	a2; 		0
+	delta_t;	0
+	d_max;		0
+	erl_norm;	0
+)
