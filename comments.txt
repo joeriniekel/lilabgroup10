@@ -8,3 +8,4 @@ poging new - thuis - edited with atom
 top ik zie het
 test 17.20
 nu
+even kijken of ie dit ook nu in matlab laat zien
