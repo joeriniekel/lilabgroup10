@@ -5,7 +5,6 @@ function [ fncs ] = rules()
         fncs{i} = str2func(fncs{i});
     end
 end
-%h
 
 function result = anxiety( model, trace, parameters, t )
 
@@ -83,24 +82,44 @@ end
 
 function result = chest_pos( model, trace, parameters, t )
 
-    for c = l2.getall(trace, t+1, 'chest_c', {NaN})
-        current_chest_c = c.arg{1};
-        for c2 = l2.getall(trace, t, 'chest_c', {NaN})
-            prev_chest_c = c2.arg{1};
+  for c = l2.getall(trace, t+1, 'chest_c', {NaN})
+    current_chest_c = c.arg{1};
+      for c2 = l2.getall(trace, t, 'chest_c', {NaN})
+        prev_chest_c = c2.arg{1};
 
-        	margin = 10;
+        margin = model.parameters.default.margin;
 
-    		if current_chest_c > prev_chest_c + margin
-        	    chest_pos = '1 in';
-        	elseif current_chest_c < prev_chest_c - margin
-        	    chest_pos = '3 out';
-        	else
-        	    chest_pos = '2 rest';
-            end
-        	result = {t+2, 'chest_pos', {chest_pos}};
-    	end
-	end
+      	if current_chest_c > prev_chest_c + margin
+          chest_pos = '1 in';
+        elseif current_chest_c < prev_chest_c - margin
+        	chest_pos = '3 out';
+        else
+        	chest_pos = '2 rest';
+        end
+
+        result = {t+2, 'chest_pos', {chest_pos}};
+      end
+    end
 end
+
+
+
+
+% --------------------------------------------------------
+%
+%   ANALYSIS
+%
+% --------------------------------------------------------
+
+function result = obs_chest_c( model, trace, parameters, t )
+
+  for c = l2.getall(trace, t+1, 'chest_c', {NaN})
+    chest_c = c.arg{1};
+
+    result = {result{:} {t+1, 'observe', predicate('chest_c', chest_c)}};
+  end
+end
+
 
 
 %oude cyclus
