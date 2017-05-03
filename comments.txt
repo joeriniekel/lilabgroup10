@@ -4,3 +4,4 @@ rules line 24: situations ipv objects
 %hoi
 %pinda
 %p2
+%testje
