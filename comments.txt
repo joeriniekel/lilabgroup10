@@ -6,3 +6,4 @@ rules line 24: situations ipv objects
 
 poging new - thuis - edited with atom
 top ik zie het
+test 17.20
