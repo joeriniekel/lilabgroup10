@@ -120,6 +120,38 @@ function result = obs_chest_c( model, trace, parameters, t )
   end
 end
 
+function result = bel_chest_c( model, trace, parameters, t )
+
+  for c = l2.getall(trace, t+1, 'observe', predicate('chest_c', NaN))
+    chest_c = c.arg{1}.arg{1};
+
+    result = {t+1, 'belief', predicate('chest_c',chest_c)};
+  end
+end
+
+% function result = adr6(trace, params, t)
+%     result = {};
+%
+%     for loneliness_belief = l2.getall(trace, t, 'belief', predicate('feeling_of_loneliness', NaN))
+%         belief = loneliness_belief.arg{1}.arg{1};
+
+% for c = l2.getall(trace, t, 'observe', {'chest_c', NaN})
+
+% for c = l2.getall(trace, t, 'chest_c', {NaN})
+% for c = l2.getall(trace, t, 'observe', predicate('chest_c', NaN))
+  % chest_c = c.arg{1}.arg{1};
+  % for loneliness_belief = l2.getall(trace, t, 'belief', predicate('feeling_of_loneliness', NaN))
+  %     belief = loneliness_belief.arg{1}.arg{1};
+
+% function result = adr3(trace, params, t)
+%     result = {};
+%
+%     for observation = l2.getall(trace, t, 'observation', {predicate('performance', NaN)})
+%         belief = observation.arg{1};
+%
+%         result = {result{:} {t+1, 'belief', belief}};
+%     end
+% end
 
 %oude cyclus
 %function result = chest_pos( model, trace, parameters, t )
