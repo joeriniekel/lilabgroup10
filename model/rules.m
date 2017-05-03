@@ -151,6 +151,22 @@ function result = bel_chest_pos( model, trace, parameters, t )
   end
 end
 
+function result = graph_belief_chest_pos( model, trace, parameters, t )
+
+  for c = l2.getall(trace, t+1, 'belief', predicate('chest_pos', NaN))
+    chest_pos = c.arg{1}.arg{1};
+
+    if strcmp(chest_pos,'1 in')
+      chest_pos_number = 1;
+    elseif strcmp(chest_pos,'2 rest')
+      chest_pos_number = 2;
+    else
+      chest_pos_number = 3;
+    end
+    result = {t+2, 'graph_belief_chest_pos', chest_pos_number};
+  end
+end
+
 function result = bel_breathing_f( model, trace, parameters, t )
 
   for c = l2.getall(trace, t+1, 'belief', predicate('chest_pos', NaN))
@@ -159,7 +175,7 @@ function result = bel_breathing_f( model, trace, parameters, t )
 
 
 
-    breathing_f = 10
+    breathing_f = 10;
 
     result = {t+1, 'belief', predicate('breathing_f',breathing_f)};
   end

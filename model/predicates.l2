@@ -18,6 +18,7 @@ chest_pos;      {POS}
 
 
 
+
 observe;            {OBSERVE}
 belief;             {BELIEF}
 desire;             {DESIRE}
@@ -26,11 +27,10 @@ assume;             {ASSUME}
 deviation;          {DEVIATION}
 sensitivity;        {SENS}
 
+graph_belief_chest_pos; REAL
 
 
 
-%goes_to_p2;					BOOLEAN
-%observes_food_at_p2;		BOOLEAN
-%observes_no_screen;			BOOLEAN
+
 %lightvalue;                 REAL
 %light;                      SWITCH
