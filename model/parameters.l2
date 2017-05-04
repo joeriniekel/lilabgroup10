@@ -20,4 +20,10 @@ default(
     hr_breathing;       0.08
     breathing_anxiety;  0.5
 
+    % analysis model
+    chest_trans_mode;   1
+      %1 or 3
+    n_breathing_cycles; 10;
+    max_interval_t;     10000;
+      %in s, dependent of dt
 )
