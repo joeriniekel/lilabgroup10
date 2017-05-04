@@ -9,8 +9,8 @@ POS;                {1 in, 2 rest, 3 out, in, out, rest}
 % beliefs etc
 
 OBSERVE;            {<chest_c>}
-BELIEF;             {<chest_c>}
-DESIRE;             {<chest_c>}
+BELIEF;             {<chest_c>,<chest_pos>,<breathing_f>}
+DESIRE;             {<chest_c>,<chest_pos>,<breathing_f>}
 PREDICT;            {<erl>}
 ASSUME;             {<erl>}
 DEVIATION;          {<erl>}

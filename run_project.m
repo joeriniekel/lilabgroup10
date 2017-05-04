@@ -9,4 +9,5 @@ model.simulate(50);
 %model.plot();
                     %do not plot beliefs etc
 model.plot({'anxiety','sitfac', 'hr', 'breathing_f', ...
-  'physical_state','chest_c'});
+  'physical_state','chest_c','graph_belief_chest_pos',...
+  'belief'});
