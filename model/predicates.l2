@@ -15,8 +15,11 @@ performance;    REAL
 
 chest_c;        REAL
 chest_pos;      {POS}
+chest_trans;    BOOLEAN
+      %chest_pos transition
 
-
+%breathing_abnormality_factor; REAL
+  %
 
 
 observe;            {OBSERVE}
@@ -27,9 +30,11 @@ assume;             {ASSUME}
 deviation;          {DEVIATION}
 sensitivity;        {SENS}
 
-graph_belief_chest_pos; REAL
-
-
+% graphs
+graph_bel_chest_pos;    REAL
+graph_bel_chest_trans;  BOOLEAN
+graph_bel_breathing_f;  REAL
+graph_breathing_f_error;  REAL
 
 
 %lightvalue;                 REAL

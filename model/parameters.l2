@@ -1,10 +1,14 @@
-% bhr   = basic heart rate in bpm
+% dt          = the amount of seconds simulated per time step
+    %0.1 is realistic
+    %1.0 results in faster rendering
+% bhr         = basic heart rate in bpm
 % max_chest_c = max_chest_circumfence in cm
+% margin      = the sensitivity used to determine a change in chest position
+
 
 default(
 
-    dt;                  1
-            %the amount of seconds per time step
+    dt;                 1
     bhr;                90
     max_chest_c;        80
     margin;             10
@@ -20,4 +24,10 @@ default(
     hr_breathing;       0.08
     breathing_anxiety;  0.5
 
+    % analysis model
+    chest_trans_mode;   1
+      %1 or 3
+    n_breathing_cycles; 10;
+    max_interval_t;     10000;
+      %in s, dependent of dt
 )
