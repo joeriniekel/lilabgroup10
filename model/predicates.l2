@@ -18,6 +18,9 @@ chest_pos;      {POS}
 chest_trans;    BOOLEAN
       %chest_pos transition
 
+%breathing_abnormality_factor; REAL
+  %
+
 
 observe;            {OBSERVE}
 belief;             {BELIEF}

@@ -8,7 +8,7 @@ end
 
 function result = anxiety( model, trace, parameters, t )
 
-    for sf = l2.getall(trace, t, 'sitfac', {NaN})
+    for sf = l2.getall(trace, t, 'sitfac', {NaN}) %t+1? todo
         sitfac = sf.arg{1};
 
         prev_anxiety = trace(t).anxiety.arg{1};
@@ -78,25 +78,25 @@ function result = chest_c( model, trace, parameters, t )
 end
 
 function result = chest_pos( model, trace, parameters, t )
+  % anxiety = trace(t).chest_c.arg{1};
+  % for c = l2.getall(trace, t+1, 'chest_c', {NaN})
+  %   current_chest_c = c.arg{1};
+  %     for c2 = l2.getall(trace, t, 'chest_c', {NaN})
+  %       prev_chest_c = c2.arg{1};
+  curr_chest_c = trace(t+1).chest_c.arg{1};
+  prev_chest_c = trace(t).chest_c.arg{1};
+  margin = model.parameters.default.margin;
 
-  for c = l2.getall(trace, t+1, 'chest_c', {NaN})
-    current_chest_c = c.arg{1};
-      for c2 = l2.getall(trace, t, 'chest_c', {NaN})
-        prev_chest_c = c2.arg{1};
-
-        margin = model.parameters.default.margin;
-
-      	if current_chest_c > prev_chest_c + margin
-          chest_pos = '1 in';
-        elseif current_chest_c < prev_chest_c - margin
-        	chest_pos = '3 out';
-        else
-        	chest_pos = '2 rest';
-        end
-
-        result = {t+2, 'chest_pos', {chest_pos}};
-      end
-    end
+  if curr_chest_c > prev_chest_c + margin
+    chest_pos = '1 in';
+  elseif curr_chest_c < prev_chest_c - margin
+   	chest_pos = '3 out';
+  else
+   	chest_pos = '2 rest';
+  end
+  result = {t+2, 'chest_pos', {chest_pos}};
+    %   end
+    % end
 end
 
 
@@ -253,34 +253,42 @@ function result = bel_breathing_f( model, trace, parameters, t )
   n_cycles = model.parameters.default.n_breathing_cycles;
   max = model.parameters.default.max_interval_t;
   dt = model.parameters.default.dt;
-  
+
   max = max / dt;
   v = [];
   a = t;
-  while sum(v) < n_cycles
-    val = l2.getall(trace, a+1, 'belief', predicate('chest_trans', NaN)).arg{1}.arg{1};
-    count = t-a;
-    v(count+1) = val;         %matlab starts counting at 1 instead of 0
-    a = a-1;
-    if a <= 1,    break; end; %break at t1
-    if count>max, break; end; %break when max timesteps has been searched
-  end
-  %note that v is reversed, all the new (older t) values were appenden to the vector
 
-  %calulate interval size + number of breathing cycles
 
-  t_last_start = t - find(v==1,1); %can be [] (empty)
-  if isempty(t_last_start)          %no cycles found: return 0
+  if t < n_cycles   % a minimum of n*2 time steps are required
     breathing_f = 0;
+    disp('Waiting - collecting data')
   else
-    t_start = a;
-    t_end = t_last_start - 1;
-    if t_end<1, t_end=1; disp('t_end was 0'); end;
-    if t_end<t_start, disp('kanniet - interval onjuist');  end;
+    if t==n_cycles, disp('  Go  -->'); end;
+    while sum(v) < n_cycles
+      val = l2.getall(trace, a+1, 'belief', predicate('chest_trans', NaN)).arg{1}.arg{1};
+      count = t-a;
+      v(count+1) = val;         %matlab starts counting at 1 instead of 0
+      a = a-1;
+      if a <= 1,    break; end; %break at t1
+      if count>max, break; end; %break when max timesteps has been searched
+    end
+    %note that v is reversed, all the new (older t) values were appenden to the vector
 
-    interval = t_end - t_start;
-    n_cycles = sum(v);    %can be less than the original
-    breathing_f = n_cycles / interval;
+    %calulate interval size + number of breathing cycles
+    t_last_start = t - find(v==1,1); %can be [] (empty)
+    if isempty(t_last_start)          %no cycles found: return 0
+      breathing_f = 0;
+      disp('no cycles found')
+    else
+      t_start = a;
+      t_end = t_last_start - 1;
+      if t_end<1, t_end=1; disp(t); disp('t_end < 1'); end;
+      if t_end<t_start, disp('kanniet - interval onjuist');  end;
+
+      interval = t_end - t_start;
+      n_cycles = sum(v);    %can be less than the original
+      breathing_f = n_cycles / interval;
+    end
   end
 
   result = {t+1, 'belief', predicate('breathing_f', breathing_f)};
@@ -290,7 +298,6 @@ function result = graph_bel_breathing_f( model, trace, parameters, t )
   b = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_bel_breathing_f', b};
 end
-
 function result = graph_breathing_f_error( model, trace, parameters, t )
   b = l2.getall(trace, t+1, 'breathing_f', NaN).arg{1};
   c = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};

@@ -5,7 +5,7 @@ default (
 
 
     sitfac{1};              [1:Inf]
-    %sitfac{50};              [3:Inf]
+    %sitfac{50};            [3:Inf]
 
     anxiety{10};            [1]
     hr{100};                [1]
@@ -13,7 +13,8 @@ default (
         %factor for increase in hr
     breathing_f{0.1};       [1]
         %in s
-    chest_c{0};             [1:2]
+    %chest_c{0};             [1:2]
+    chest_c{0};             [1]
     chest_pos{2 rest};   	  [1]
     %chest_trans{0};   	    [1]
     %chest_trans_array{10};  [1]
