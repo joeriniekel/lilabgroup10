@@ -14,7 +14,6 @@ default(
     margin;             10
             %the margin for detection of chest pos (in/out)
 
-    %factors
     disfac;             1.5
 
     %factors for the strenth of relations between concepts

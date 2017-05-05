@@ -6,6 +6,7 @@ anxiety;        REAL
 
 
 sitfac;         REAL
+test_predicate;         REAL
 %disfac;         REAL
 
 hr;             REAL
