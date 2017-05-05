@@ -11,15 +11,13 @@ model.simulate(80);
 model.plot({'anxiety','sitfac', 'hr',...
     'breathing_f', 'physical_state',...
     'chest_c','graph_bel_chest_pos',...
-    'graph_bel_breathing_f'});
+    'graph_bel_chest_trans','graph_bel_breathing_f',...
+    'graph_breathing_f_error'});
 %plot belief...
 
 model.plot({'graph_bel_chest_trans'});
-legend('Undefined','Start of breathing cycle')
+legend('undefined','Start of breathing cycle')
 
 model.plot({'graph_breathing_f_error'});
 legend('Deviation','Zero')
-model.export('model.png',{'graph_breathing_f_error'});
-
-
-
+%model.export('model.png');
