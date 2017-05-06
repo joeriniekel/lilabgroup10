@@ -6,6 +6,11 @@ anxiety;        REAL
 
 
 sitfac;         REAL
+<<<<<<< HEAD
+=======
+test_predicate;         REAL
+%disfac;         REAL
+>>>>>>> refs/remotes/origin/analyse-mark
 
 hr;             REAL
 breathing_f;    REAL
