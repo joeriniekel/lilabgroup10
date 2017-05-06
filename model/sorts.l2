@@ -1,8 +1,8 @@
 %SWITCH;     {On, Off}
 %POS;                {in,out,rest}
-POS;                {1 in, 2 rest, 3 out, in, out, rest}
+POS;                {1 in, 2 rest, 3 out}
     %alphabetic ordering
-
+ACC;                {increasing, decreasing, stable}
 
 
 

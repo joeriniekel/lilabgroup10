@@ -7,10 +7,7 @@ function [ fncs ] = rules()
 end
 
 function result = anxiety( model, trace, parameters, t )
-
-  sitfac2 = trace(t).sitfac.arg{1}; %gives errors
-        
-
+  % sitfac2 = trace(t).sitfac.arg{1}; %gives errors
     for sf = l2.getall(trace, t, 'sitfac', {NaN}) %t+1? todo
         sitfac = sf.arg{1};
 
@@ -329,13 +326,10 @@ function result = bel_breathing_acc( model, trace, parameters, t )
     a = a-1;
   end
   %note that v is reversed, all the new (older t) values were appenden to the vector
-  % v
-  % disp('sum')
-  % sum(v)
-  % length(v)
+
   avg = sum(v) / length(v);
+
   if length(v) == 0 disp('acc - div by 0'); end;
-  breathing_f
   if breathing_f > avg + margin
     breathing_acc = 'increasing';
   elseif breathing_f < avg - margin
@@ -344,8 +338,8 @@ function result = bel_breathing_acc( model, trace, parameters, t )
     breathing_acc = 'stable';
   end
 
-  breathing_acc = 5;
-  result = {t+1, 'belief', predicate('breathing_acc', breathing_acc)};
+  % breathing_acc = 5;
+  result = {t+1, 'belief', predicate('breathing_acc',{breathing_acc})};
 end
 
 

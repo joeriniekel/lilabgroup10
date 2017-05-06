@@ -3,21 +3,7 @@ v2;		REAL
 
 
 anxiety;        REAL
-
-
 sitfac;         REAL
-<<<<<<< HEAD
-<<<<<<< HEAD
-test_predicate;         REAL
-%disfac;         REAL
-=======
->>>>>>> master
-=======
-=======
-test_predicate;         REAL
-%disfac;         REAL
->>>>>>> refs/remotes/origin/analyse-mark
->>>>>>> master
 
 hr;             REAL
 breathing_f;    REAL
@@ -30,7 +16,7 @@ chest_trans;    BOOLEAN
       %chest_pos transition
       %naam veranderen naar chest_change?
 
-breathing_acc;	REAL
+breathing_acc;	{ACC}
 	%acceleration of the breathing f
 	%(thus the amount the breathing f increases)
 

@@ -8,9 +8,6 @@ model.simulate(50,'default','default');
 disp('Simulation finished');
 %model.plot();
 
-model.plot({'test_predicate'})
-
-
 model.plot({'anxiety','sitfac', 'hr',...
     'breathing_f', 'physical_state',...
     'chest_c','graph_bel_chest_pos',...
