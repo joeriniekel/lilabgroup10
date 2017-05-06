@@ -16,6 +16,11 @@ chest_c;        REAL
 chest_pos;      {POS}
 chest_trans;    BOOLEAN
       %chest_pos transition
+      %naam veranderen naar chest_change?
+
+breathing_acc;	REAL
+	%acceleration of the breathing f
+	%(thus the amount the breathing f increases)
 
 %breathing_abnormality_factor; REAL
   %

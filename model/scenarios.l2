@@ -26,6 +26,8 @@ default (
     belief{chest_pos{2 rest}};  [1]
     belief{chest_trans{true}};  [1]
           %needs to be defined because (t+2) is used
+    belief{breathing_f{10}};    [1]
+    %belief{breathing_acc{10}};    [1]
 
     graph_breathing_f_error{0}; [1:Inf]
 

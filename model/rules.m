@@ -8,6 +8,9 @@ end
 
 function result = anxiety( model, trace, parameters, t )
 
+  sitfac2 = trace(t).sitfac.arg{1}; %gives errors
+        
+
     for sf = l2.getall(trace, t, 'sitfac', {NaN}) %t+1? todo
         sitfac = sf.arg{1};
 
@@ -101,19 +104,26 @@ end
 
 
 
+
+
+
+
+
 % --------------------------------------------------------
 %
 %   ANALYSIS
 %
 % --------------------------------------------------------
 
+
+
 function result = obs_chest_c( model, trace, parameters, t )
 
-  for c = l2.getall(trace, t, 'chest_c', {NaN})
-    chest_c = c.arg{1};
-
-    result = {t+1, 'observe', predicate('chest_c',chest_c)};
-  end
+  chest_c = l2.getall(trace, t, 'chest_c', {NaN}).arg{1};
+  % for c = l2.getall(trace, t, 'chest_c', {NaN})
+  %   chest_c = c.arg{1};
+   result = {t+1, 'observe', predicate('chest_c',chest_c)};
+  % end
 end
 
 function result = bel_chest_c( model, trace, parameters, t )
@@ -265,7 +275,7 @@ function result = bel_breathing_f( model, trace, parameters, t )
     if t==n_cycles, disp('  Go  -->'); end;
     while sum(v) <= n_cycles
       val = l2.getall(trace, a+1, 'belief', predicate('chest_trans', NaN)).arg{1}.arg{1};
-      count = t-a;
+      count = t-a;              %teller: aantal loops
       v(count+1) = val;         %matlab starts counting at 1 instead of 0
       a = a-1;
       if a <= 1,    break; end; %break at t1
@@ -302,6 +312,61 @@ function result = graph_breathing_f_error( model, trace, parameters, t )
   c = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_breathing_f_error', c-b};
 end
+
+function result = bel_breathing_acc( model, trace, parameters, t )
+  % acceleration of the breathing f
+  % breathing f starts with 0, therefore acc = 0
+  breathing_f = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  interval = 5;
+  margin = 10;
+  if interval > t -1, interval = t -1; end;
+  end_t = t - interval;
+  v = [];
+  for a=t:-1:end_t
+    val = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+    count = t-a;              %teller: aantal loops
+    v(count+1) = val;
+    a = a-1;
+  end
+  %note that v is reversed, all the new (older t) values were appenden to the vector
+  % v
+  % disp('sum')
+  % sum(v)
+  % length(v)
+  avg = sum(v) / length(v);
+  if length(v) == 0 disp('acc - div by 0'); end;
+  breathing_f
+  if breathing_f > avg + margin
+    breathing_acc = 'increasing';
+  elseif breathing_f < avg - margin
+    breathing_acc = 'decreasing';
+  else
+    breathing_acc = 'stable';
+  end
+
+  breathing_acc = 5;
+  result = {t+1, 'belief', predicate('breathing_acc', breathing_acc)};
+end
+
+
+
+% function result = bel_breathing_acc( model, trace, parameters, t )
+
+%   chest_c = l2.getall(trace, t, 'breathing_f', NaN).arg{1};
+%   for x  = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN));
+%     breathing_f = x.arg{1}.arg{1};
+%     breathing_f
+
+
+%     breathing_acc = 3;
+%   % for c = l2.getall(trace, t, 'chest_c', {NaN})
+%   %   chest_c = c.arg{1};
+%     result = {t+1, 'belief', predicate('breathing_acc', breathing_acc)};
+
+%     % result = {t+1, 'observe', predicate('chest_c',chest_c)};
+%   end
+% end
+
 
 % function result = adr6(trace, params, t)
 %     result = {};
