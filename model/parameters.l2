@@ -4,7 +4,7 @@
 % bhr         = basic heart rate in bpm
 % max_chest_c = max_chest_circumfence in cm
 % margin      = the sensitivity used to determine a change in chest position
-
+% chest_trans_mode  = option to let chest transition be dependent on '1 in' or '3 out'
 
 default(
 
@@ -29,4 +29,8 @@ default(
     n_breathing_cycles; 10;
     max_interval_t;     10000;
       %in s, dependent of dt
+
+    %chest acc
+    chest_acc_interval;       2
+    chest_acc_margin;         0.01
 )

@@ -264,7 +264,6 @@ function result = bel_breathing_f( model, trace, parameters, t )
   v = [];
   a = t;
 
-
   if t < n_cycles   % a minimum of n*2 time steps are required
     breathing_f = 0;
     disp('Waiting - collecting data')
@@ -278,7 +277,7 @@ function result = bel_breathing_f( model, trace, parameters, t )
       if a <= 1,    break; end; %break at t1
       if count>max, break; end; %break when max timesteps has been searched
     end
-    %note that v is reversed, all the new (older t) values were appenden to the vector
+    %note that v is reversed, all the new (older t) values were appended to the vector
 
     %calulate interval size + number of breathing cycles
     t_last_start = t - find(v==1,1); %can be [] (empty)
@@ -314,35 +313,38 @@ function result = bel_breathing_acc( model, trace, parameters, t )
   % acceleration of the breathing f
   % breathing f starts with 0, therefore acc = 0
   breathing_f = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  interval = 5;
-  margin = 10;
-  if interval > t -1, interval = t -1; end;
+  interval = model.parameters.default.chest_acc_interval;
+  margin = model.parameters.default.chest_acc_margin;
+
+  if interval > t-1, interval = t-1; end;
   end_t = t - interval;
   v = [];
+
   for a=t:-1:end_t
-    val = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+    val = l2.getall(trace, a, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
     count = t-a;              %teller: aantal loops
     v(count+1) = val;
     a = a-1;
   end
-  %note that v is reversed, all the new (older t) values were appenden to the vector
+  %note that v is reversed, all the new (older t) values were appended to the vector
 
   avg = sum(v) / length(v);
-
   if length(v) == 0 disp('acc - div by 0'); end;
   if breathing_f > avg + margin
-    breathing_acc = 'increasing';
+    breathing_acc = '1 increasing';
   elseif breathing_f < avg - margin
-    breathing_acc = 'decreasing';
+    breathing_acc = '3 decreasing';
   else
-    breathing_acc = 'stable';
+    breathing_acc = '2 stable';
   end
 
-  % breathing_acc = 5;
   result = {t+1, 'belief', predicate('breathing_acc',{breathing_acc})};
 end
 
-
+function result = graph_bel_breathing_acc( model, trace, parameters, t )
+  acc = l2.getall(trace, t+1, 'belief', predicate('breathing_acc', {NaN})).arg{1}.arg{1};
+  result = {t+1, 'graph_bel_breathing_acc', {acc}};
+end
 
 % function result = bel_breathing_acc( model, trace, parameters, t )
 

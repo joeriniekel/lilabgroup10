@@ -27,7 +27,7 @@ default (
   belief{breathing_f{10}};    [1]
   %belief{breathing_acc{10}};    [1]
 
-  graph_breathing_f_error{0}; [1:Inf]
+  %graph_breathing_f_error{0}; [1:Inf]
 
   %v2{10};                 [1:Inf]
   %lightvalue{rtinput_lightsensor}; [1:Inf]

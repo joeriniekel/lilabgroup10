@@ -37,6 +37,7 @@ graph_bel_chest_pos;    REAL
 graph_bel_chest_trans;  BOOLEAN
 graph_bel_breathing_f;  REAL
 graph_breathing_f_error;  REAL
+graph_bel_breathing_acc;  {ACC}
 
 
 %lightvalue;                 REAL
