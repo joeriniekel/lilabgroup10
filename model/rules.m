@@ -76,6 +76,20 @@ function result = chest_c( model, trace, parameters, t )
     result = {t+1, 'chest_c', chest_c};
 end
 
+% function result = chest_c( model, trace, parameters, t )
+% chest_c veroorzaakt nu schokken
+% een betere modulatie zou zijn:
+%   bepaal huidige transition:  in- of uitademen
+%   bepaal hr, bepaal breathing f
+%   bepaal de snelheid waarmee de chest pos moet bewegen
+%     (f/afstand)
+%   bepaal aan de hand daarvan de nieuwe chest pos (e.g. oude pos + 2cm)
+%
+%   op deze manier is het modeleren van afwijkingen ook logischer
+% end
+
+
+
 function result = chest_pos( model, trace, parameters, t )
   % anxiety = trace(t).chest_c.arg{1};
   % for c = l2.getall(trace, t+1, 'chest_c', {NaN})
