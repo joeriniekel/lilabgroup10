@@ -7,8 +7,15 @@ default (
   sitfac{10};              [1:Inf]
   %sitfac{50};            [3:Inf]
 
+<<<<<<< HEAD
   % test_predicate{20};      [1:5]
   test_predicate{50};     [9:Inf]
+=======
+    sitfac{1};              [1:2]
+    sitfac{50};             [3:4]
+    sitfac{40};             [5:100]
+        %bij [5:Inf] geeft hij alsnog een dubbele lijn
+>>>>>>> master
 
 
 
