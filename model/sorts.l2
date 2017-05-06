@@ -1,9 +1,9 @@
 %SWITCH;     {On, Off}
 %POS;                {in,out,rest}
-POS;                {1 in, 2 rest, 3 out, in, out, rest}
-    %alphabetic ordering
-
-
+POS;                {1 in, 2 rest, 3 out}
+  %alphabetic ordering
+ACC;                {1 increasing, 3 decreasing, 2 stable}
+  %alphabetic ordering
 
 
 % beliefs etc
