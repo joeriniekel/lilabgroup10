@@ -2,14 +2,20 @@
 % breathing f     f   in Hz (sˆ-1)
 % physical_state  factor for increase in hr
 
+%sitfac{10};             [10:100]
+  %bij [5:Inf] geeft hij alsnog een dubbele lijn
+
+
+
+
+
 default (
 
-  sitfac{1};              [1:2]
-  sitfac{50};             [3:4]
-  sitfac{40};             [5:100]
-    %bij [5:Inf] geeft hij alsnog een dubbele lijn
+  sitfac{10};             [1:10]
+  sitfac{80};             [11:40]
+  sitfac{10};             [41:200]
 
-  anxiety{10};            [1]
+  anxiety{0};             [1]
   hr{100};                [1]
   physical_state{1.1};   	[1:Inf]
   breathing_f{0.1};       [1]

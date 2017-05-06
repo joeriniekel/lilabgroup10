@@ -16,9 +16,11 @@ chest_trans;    BOOLEAN
       %chest_pos transition
       %naam veranderen naar chest_change?
 
-breathing_acc;	{ACC}
+breathing_acc;	REAL
 	%acceleration of the breathing f
 	%(thus the amount the breathing f increases)
+breathing_pattern;  {PATTERN}
+
 
 %breathing_abnormality_factor; REAL
   %
@@ -37,8 +39,8 @@ graph_bel_chest_pos;    REAL
 graph_bel_chest_trans;  BOOLEAN
 graph_bel_breathing_f;  REAL
 graph_breathing_f_error;  REAL
-graph_bel_breathing_acc;  {ACC}
-
+graph_bel_breathing_acc;  REAL
+graph_bel_breathing_pattern;  {PATTERN}
 
 %lightvalue;                 REAL
 %light;                      SWITCH

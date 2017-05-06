@@ -36,28 +36,28 @@ function result = hr( model, trace, parameters, t )
   ps = trace(t).physical_state.arg{1}; % t+1 doesn't work with this syntax + scenario values
   a = model.parameters.default.anxiety_hr;
 
-  hr_new = (bhr * ps) + (a * anxiety);
+  hr_new = (bhr * ps) + (a * anxiety);  % * rand
 
   result = {t+1, 'hr', hr_new};
 end
 
 function result = breathing_f( model, trace, parameters, t )
 
-    %breathing_f = trace(t+1).breathing_f.arg{1};
-    hr = trace(t+1).hr.arg{1};
-    h = model.parameters.default.hr_breathing;
+  hr = trace(t+1).hr.arg{1};
+  h = model.parameters.default.hr_breathing;
+  h2 = model.parameters.default.hr_breathing_exp;
 
-    breathing_f_in_bpm = h * hr;
-    breathing_f_new = breathing_f_in_bpm /60;
-    %disp('breathing f in bpm')
-    %disp(breathing_f_in_bpm)
-    result = {t+1, 'breathing_f', breathing_f_new};
+  breathing_f_in_bpm = h * hr ^ h2;
+  breathing_f = breathing_f_in_bpm / 60;
+
+  result = {t+1, 'breathing_f', breathing_f};
 end
 
 function result = chest_c( model, trace, parameters, t )
 
     dt = model.parameters.default.dt;
     max_c = model.parameters.default.max_chest_c;
+    min_c = model.parameters.default.min_chest_c;
     breathing_f = trace(t+1).breathing_f.arg{1};
     %breathing_f = n/s
     %n = breathing_f * s;
@@ -75,6 +75,20 @@ function result = chest_c( model, trace, parameters, t )
 
     result = {t+1, 'chest_c', chest_c};
 end
+
+% function result = chest_c( model, trace, parameters, t )
+% chest_c veroorzaakt nu schokken
+% een betere modulatie zou zijn:
+%   bepaal huidige transition:  in- of uitademen
+%   bepaal hr, bepaal breathing f
+%   bepaal de snelheid waarmee de chest pos moet bewegen
+%     (f/afstand)
+%   bepaal aan de hand daarvan de nieuwe chest pos (e.g. oude pos + 2cm)
+%
+%   op deze manier is het modeleren van afwijkingen ook logischer
+% end
+
+
 
 function result = chest_pos( model, trace, parameters, t )
   % anxiety = trace(t).chest_c.arg{1};
@@ -313,8 +327,8 @@ function result = bel_breathing_acc( model, trace, parameters, t )
   % acceleration of the breathing f
   % breathing f starts with 0, therefore acc = 0
   breathing_f = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  interval = model.parameters.default.chest_acc_interval;
-  margin = model.parameters.default.chest_acc_margin;
+  interval = model.parameters.default.acc_interval;
+  margin = model.parameters.default.acc_margin;
 
   if interval > t-1, interval = t-1; end;
   end_t = t - interval;
@@ -331,37 +345,52 @@ function result = bel_breathing_acc( model, trace, parameters, t )
   avg = sum(v) / length(v);
   if length(v) == 0 disp('acc - div by 0'); end;
   if breathing_f > avg + margin
-    breathing_acc = '1 increasing';
+    breathing_acc = 1;
   elseif breathing_f < avg - margin
-    breathing_acc = '3 decreasing';
+    breathing_acc = -1;
   else
-    breathing_acc = '2 stable';
+    breathing_acc = 0;
   end
 
-  result = {t+1, 'belief', predicate('breathing_acc',{breathing_acc})};
+  result = {t+1, 'belief', predicate('breathing_acc',breathing_acc)};
 end
 
 function result = graph_bel_breathing_acc( model, trace, parameters, t )
-  acc = l2.getall(trace, t+1, 'belief', predicate('breathing_acc', {NaN})).arg{1}.arg{1};
-  result = {t+1, 'graph_bel_breathing_acc', {acc}};
+  acc = l2.getall(trace, t+1, 'belief', predicate('breathing_acc', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_bel_breathing_acc', acc};
 end
 
-% function result = bel_breathing_acc( model, trace, parameters, t )
+function result = bel_breathing_pattern( model, trace, parameters, t )
 
-%   chest_c = l2.getall(trace, t, 'breathing_f', NaN).arg{1};
-%   for x  = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN));
-%     breathing_f = x.arg{1}.arg{1};
-%     breathing_f
+  interval = model.parameters.default.pattern_interval;
 
+  if interval > t-1, interval = t-1; end;
+  end_t = t - interval;
+  v = [];
 
-%     breathing_acc = 3;
-%   % for c = l2.getall(trace, t, 'chest_c', {NaN})
-%   %   chest_c = c.arg{1};
-%     result = {t+1, 'belief', predicate('breathing_acc', breathing_acc)};
+  for a=t:-1:end_t
+    val = l2.getall(trace, a, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+    count = t-a;              %teller: aantal loops
+    v(count+1) = val;
+    a = a-1;
+  end
+  %note that v is reversed, all the new (older t) values were appended to the vector
 
-%     % result = {t+1, 'observe', predicate('chest_c',chest_c)};
-%   end
-% end
+  increases = v(v==1);
+  decreases = v(v==-1);
+  if ~isempty(increases) && ~isempty(increases)
+    pattern = 'irregular';
+  else
+    pattern = 'regular';
+  end
+
+  result = {t+1, 'belief', predicate('breathing_pattern',{pattern})};
+end
+
+function result = graph_bel_breathing_pattern( model, trace, parameters, t )
+  p = l2.getall(trace, t+1, 'belief', predicate('breathing_pattern', {NaN})).arg{1}.arg{1};
+  result = {t+1, 'graph_bel_breathing_pattern', {p}};
+end
 
 
 % function result = adr6(trace, params, t)

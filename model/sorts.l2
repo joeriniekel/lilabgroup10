@@ -2,14 +2,14 @@
 %POS;                {in,out,rest}
 POS;                {1 in, 2 rest, 3 out}
   %alphabetic ordering
-ACC;                {1 increasing, 3 decreasing, 2 stable}
+PATTERN;                {regular, irregular}
   %alphabetic ordering
 
 
 % beliefs etc
 
 OBSERVE;            {<chest_c>}
-BELIEF;             {<chest_c>,<chest_pos>,<chest_trans>,<breathing_f>,<breathing_acc>}
+BELIEF;             {<chest_c>,<chest_pos>,<chest_trans>,<breathing_f>,<breathing_acc>,<breathing_pattern>}
 DESIRE;             {<chest_c>,<chest_pos>,<breathing_f>}
 PREDICT;            {<erl>}
 ASSUME;             {<erl>}
