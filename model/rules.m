@@ -30,8 +30,7 @@ function result = anxiety( model, trace, parameters, t )
 end
 
 function result = hr( model, trace, parameters, t )
-  %for p = l2.getall(trace, t+1, 'physical_state', {NaN})
-  %    ps = p.arg{1};
+
   anxiety = trace(t+1).anxiety.arg{1};
   bhr = model.parameters.default.bhr;
   ps = trace(t).physical_state.arg{1}; % t+1 doesn't work with this syntax + scenario values
@@ -264,7 +263,7 @@ function result = bel_breathing_f( model, trace, parameters, t )
     disp('Waiting - collecting data')
   else
     if t==n_cycles, disp('  Go  -->'); end;
-    while sum(v) < n_cycles
+    while sum(v) <= n_cycles
       val = l2.getall(trace, a+1, 'belief', predicate('chest_trans', NaN)).arg{1}.arg{1};
       count = t-a;
       v(count+1) = val;         %matlab starts counting at 1 instead of 0

@@ -6,7 +6,6 @@ anxiety;        REAL
 
 
 sitfac;         REAL
-%disfac;         REAL
 
 hr;             REAL
 breathing_f;    REAL

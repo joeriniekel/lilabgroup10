@@ -4,8 +4,10 @@
 default (
 
 
-    sitfac{1};              [1:Inf]
-    %sitfac{50};            [3:Inf]
+    sitfac{1};              [1:2]
+    sitfac{50};             [3:4]
+    sitfac{40};             [5:100]
+        %bij [5:Inf] geeft hij alsnog een dubbele lijn
 
     anxiety{10};            [1]
     hr{100};                [1]
