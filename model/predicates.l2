@@ -15,6 +15,7 @@ chest_speed;    REAL
 breathing_intensity;  REAL
 chest_pos2;      {POS}
 chest_c2;       REAL
+chest_c3;       REAL
 chest_pos_phi;      REAL
   % = position of the cycle
 x1;             REAL

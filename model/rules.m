@@ -83,7 +83,7 @@ function result = breathing_f( model, trace, parameters, t )
   h2 = model.parameters.default.hr_breathing_exp;
 
   breathing_f_in_bpm = h * hr ^ h2;
-  breathing_f = breathing_f_in_bpm / 60 + 0.001*rand;
+  breathing_f = breathing_f_in_bpm / 60;% + 0.001*rand;
 
   result = {t+1, 'breathing_f', breathing_f};
 end
@@ -121,7 +121,77 @@ end
 %   result = {t+1, 'chest_speed', chest_speed};
 % end
 
+% function result = chest_pos3( model, trace, parameters, t )
+% %  prev_chest_c = trace(t).chest_c3.arg{1};
+%   if t>2
+%     curr_chest_c = trace(t+1).chest_c3.arg{1};
+%   else
+%     curr_chest_c = prev_chest_c;
+%   end
+%   if prev_chest_c < curr_chest_c
+%     %agent was breathing in
+%     %he will continue to do so if max range is not reached in dt
+%     phi = 0;
+%   else
+%     %agent was breathing out
+%     phi = 0.5*pi;   %pi is exactly half a cycle
+%   end
+% % end
 
+function result = chest_c3( model, trace, parameters, t )
+  prev_chest_c = trace(t).chest_c3.arg{1};
+  if t>2
+    curr_chest_c = trace(t+1).chest_c3.arg{1};
+  else
+    curr_chest_c = prev_chest_c;
+  end
+
+  %t+2...
+  range = trace(t+1).used_chest_range.arg{1};
+  f = trace(t+1).breathing_f.arg{1};
+  dt = model.parameters.default.dt;
+  min = model.parameters.default.min_chest_c;
+  max = model.parameters.default.max_chest_c;
+  avg_chest_c = min + ((max - min) / 2);
+  A = range / 2;
+
+  relative_c = (curr_chest_c - avg_chest_c) / range;
+    % [-1,1]
+  if prev_chest_c < curr_chest_c
+    %starting direcion = breathe in
+    if relative_c >= 0
+      phase = relative_c * 0.5*pi;
+    else
+      phase = relative_c * 0.5*pi; % (-)
+    end
+  else
+    %starting direcion = breathe out
+    if relative_c >= 0
+      phase = relative_c * 0.5*pi * -1 + pi;
+    else
+      phase = relative_c * 0.5*pi * -1 + pi; % (-)
+    end
+  end
+
+  if relative_c > 1, disp(relative_c); end;
+  if relative_c == 0, disp(relative_c); end;
+  % phase = relative_c * 0.5*pi + phi;
+  % phase = relative_c * polarity * 0.5*pi + add_pi*pi;
+
+  % standard formula
+  % x(t) = A * sin(2*pi*f*t) + d
+  % d = default level = avg_chest_c
+  % A = amplitude = max available range + or - avg_chest_c
+  % here; t = dt, not the actual t
+  % x(dt) = A * sin(2*pi*f*dt + phase) + avg_chest_c
+  % si2n = sin(2*pi*f*dt)
+
+  phase
+  % aa = A * sin(2*pi*f*dt + phase)
+  new_chest_c = A * sin(2*pi*f*dt + phase) + avg_chest_c;
+
+  result = {t+2, 'chest_c3', new_chest_c};
+end
 
 function result = chest_pos_phi( model, trace, parameters, t )
   %determine the chest position/transition by calculating the phase
@@ -213,7 +283,7 @@ function result = chest_c( model, trace, parameters, t )
 
   min = model.parameters.default.min_chest_c;
   max = model.parameters.default.max_chest_c;
-  avg_chest_c = min + (max - min) / 2;
+  avg_chest_c = min + ((max - min) / 2);
 
   chest_c = avg_chest_c + x2;
 
