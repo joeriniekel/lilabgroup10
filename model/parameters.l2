@@ -26,6 +26,7 @@ default (
   max_chest_range;    20
   margin;             10
   disfac;             1.5
+  disfac_on_regulation; 0.5
 
   %factors for the strength of relations between concepts
 

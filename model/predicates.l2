@@ -2,6 +2,7 @@ erl;	REAL
 v2;		REAL
 
 anxiety;        REAL
+anxiety_regulation; REAL
 sitfac;         REAL
 hr;             REAL
 breathing_f;    REAL
