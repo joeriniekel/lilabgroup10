@@ -19,7 +19,7 @@
 
 default (
 
-  dt;                 1
+  dt;                 0.5
   bhr;                90
   max_chest_c;        80
   min_chest_c;        60
@@ -28,10 +28,12 @@ default (
   disfac;             1.5
   disfac_on_regulation; 0.5
 
-  %factors for the strength of relations between concepts
+  sig;                8
+  lower_bound;        0.000001
 
+  %factors for the strength of relations between concepts
   anxiety_decay;      0.05
-  sitfac_anxiety;     0.5
+  sitfac_anxiety;     0.8
   anxiety_hr;         0.9
   hr_breathing;       0.08
     %0.08

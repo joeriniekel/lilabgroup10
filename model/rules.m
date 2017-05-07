@@ -18,9 +18,8 @@ function result = anxiety_regulation( model, trace, parameters, t )
   breathing_f = trace(t).breathing_f.arg{1};
   disfac = model.parameters.default.disfac_on_regulation;
   b = model.parameters.default.breathing_anxiety;
-  tijdeleijke_param = 0;
 
-  anxiety_regulation = disfac + b * (1 - breathing_f + tijdeleijke_param);
+  anxiety_regulation = disfac + b * (1 - breathing_f);
 
   result = {t+1, 'anxiety_regulation', anxiety_regulation};
 end
@@ -66,8 +65,9 @@ end
 
 function result = hr( model, trace, parameters, t )
 
+  dt = model.parameters.default.dt;
   anxiety = trace(t+1).anxiety.arg{1};
-  bhr = model.parameters.default.bhr;
+  bhr = dt * model.parameters.default.bhr;
   ps = trace(t).physical_state.arg{1}; % t+1 doesn't work with this syntax + scenario values
   a = model.parameters.default.anxiety_hr;
 
@@ -83,30 +83,18 @@ function result = breathing_f( model, trace, parameters, t )
   h2 = model.parameters.default.hr_breathing_exp;
 
   breathing_f_in_bpm = h * hr ^ h2;
-  breathing_f = breathing_f_in_bpm / 60;
+  breathing_f = breathing_f_in_bpm / 60 + 0.001*rand;
 
   result = {t+1, 'breathing_f', breathing_f};
 end
 
 
-% chest_c veroorzaakt nu schokken
-% een betere modulatie zou zijn:
-%   bepaal huidige transition:  in- of uitademen
-%   bepaal hr, bepaal breathing f
-%   bepaal de snelheid waarmee de chest pos moet bewegen
-%     (f/afstand)
-%   bepaal aan de hand daarvan de nieuwe chest pos (e.g. oude pos + 2cm)
-%
-%   op deze manier is het modeleren van afwijkingen ook logischer
-
-% hr -> breathing f
-% breathing f -> breathing intensity -> used chest c range
-% breathing f + intensity -> chest movement speed (average)
 
 
 
-%breathing_intensity
+% breathing_intensity
 % the relation of this concept is unknown. it should look like this:
+%
 % function result = breathing_intensity( model, trace, parameters, t )
 %   % hoe sneller iemand ademt, hoe minder diep elke ademhaling is
 %   % bij snel ademen, ademt iemand maar voor 50% in.
@@ -125,18 +113,114 @@ function result = used_chest_range( model, trace, parameters, t )
   result = {t+1, 'used_chest_range', used_chest_range};
 end
 
+%nutteloos concept
 % function result = chest_speed( model, trace, parameters, t )
 %   breathing_f = trace(t+1).breathing_f.arg{1};
 %   used_chest_range = trace(t+1).used_chest_range.arg{1};
 %   chest_speed = used_chest_range / breathing_f;
 %   result = {t+1, 'chest_speed', chest_speed};
 % end
-% chest_speed?
 
 
+
+function result = chest_pos_phi( model, trace, parameters, t )
+  %determine the chest position/transition by calculating the phase
+  % range = [0, 2pi]
+  %first a new waveform will be recalculated with a different phase for a different f
+  %this can be used to calculate the new x(t) and thus the new chest_c
+
+  %note that phi itself will have a sawtooth waveshape instead of a sin
+  dt = model.parameters.default.dt;
+  sig = model.parameters.default.sig;   %significance
+  lower_bound = model.parameters.default.lower_bound;
+  %previous values
+  prev_f = trace(t).breathing_f.arg{1};
+  prev_t = t - 1;
+  prev_phi = trace(t).chest_pos_phi.arg{1};
+  prev_range = trace(t).used_chest_range.arg{1};
+  prev_A = prev_range / 2;
+  %current values
+  f = trace(t+1).breathing_f.arg{1};
+  range = trace(t+1).used_chest_range.arg{1};
+  A = range / 2;
+
+  % x1 = x(prev_t) = prev_A * sin(2*pi * prev_f * prev_t + 0);
+  x1 = prev_A * sin(2*pi * prev_f * prev_t * dt + prev_phi);
+  x1 = round(x1,sig);
+  if x1 < lower_bound, x1 = lower_bound; end;      %ignore tiny values
+  %because f can change,
+  % x2 = x(prev_t) = prev_A * sin(2*pi * f * prev_t + phi);
+  % Thus: x1 = x2 = x(prev_t),  but x2 has a different breathing f
+  % phi is unknown; subtract phi:
+  % new formula - omschrijven:
+  % x2 = x1 = prev_A * sin(2*pi*new_f*prev_t + new_phi);
+  % 2*pi*new_f*prev_t + new_phi = asin( x(prev_t) / A) )
+  % new_phi = asin( x(prev_t) / A) ) - 2*pi*new_f*prev_t
+  phi = asin( x1 / prev_A) - 2*pi * f * prev_t * dt;
+  phi = mod(phi,2*pi)
+
+  % d_phi = (f * dt) * 2*pi;
+  % phi = phi + d_phi;
+
+  % x2 should have the same value as x1, even though the f is changed
+  % x2 = x(prev_t) = prev_A * sin(2*pi * f * prev_t * dt + phi);
+  %%%%    code om het te testen
+  %%%% x2 = prev_A * sin(2*pi * f * prev_t * dt + phi);
+  %%%% x2 = round(x2,sig);
+  %%%% if x2 < lower_bound, x2 = lower_bound; end;
+  result = {t+1, 'chest_pos_phi', phi};
+end
+
+%alternatieve manier
+
+% chest_c veroorzaakt nu schokken
+% een betere modulatie zou zijn:
+%   bepaal huidige transition:  in- of uitademen  (in dit geval fase)
+%   bepaal breathing f
+%   bepaal de snelheid waarmee de chest pos moet bewegen
+%     (f/afstand)
+%   bepaal aan de hand daarvan de nieuwe chest pos (e.g. oude pos + 2cm)
+%
+%   op deze manier is het modeleren van afwijkingen ook logischer
+
+
+
+function result = chest_c( model, trace, parameters, t )
+  dt = model.parameters.default.dt;
+  sig = model.parameters.default.sig;   %significance
+  lower_bound = model.parameters.default.lower_bound;
+  phi = trace(t+1).chest_pos_phi.arg{1};  %t+1 ?
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  % phi = 0; %todo deze regel zou niet nodig moeten zijn
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  f = trace(t+1).breathing_f.arg{1};
+  range = trace(t+1).used_chest_range.arg{1};
+  A = range / 2;
+
+  % d_phi = (f * dt) * 2*pi;
+  % phi = phi - d_phi;
+
+  x2 = A * sin(2*pi* f * t * dt + phi);
+  x2 = round(x2,sig);
+  if x2 < lower_bound, x2 = lower_bound; end;
+
+  min = model.parameters.default.min_chest_c;
+  max = model.parameters.default.max_chest_c;
+  avg_chest_c = min + (max - min) / 2;
+
+  chest_c = avg_chest_c + x2;
+
+  result = {t+1, 'chest_c', chest_c};
+end
 
 % oude chest_c
-function result = chest_c( model, trace, parameters, t )
+function result = chest_c2( model, trace, parameters, t )
     dt = model.parameters.default.dt;
     max_c = model.parameters.default.max_chest_c;
     min_c = model.parameters.default.min_chest_c;
@@ -155,7 +239,7 @@ function result = chest_c( model, trace, parameters, t )
     end
     chest_c = max_c * 2 * phi;
 
-    result = {t+1, 'chest_c', chest_c};
+    result = {t+1, 'chest_c2', chest_c};
 end
 
 % oude chest_pos
@@ -315,7 +399,7 @@ function result = bel_breathing_f( model, trace, parameters, t )
     t_last_start = t - find(v==1,1); %can be [] (empty)
     if isempty(t_last_start)          %no cycles found: return 0
       breathing_f = 0;
-      disp('no cycles found')
+      % disp('no cycles found')
     else
       t_start = a;
       t_end = t_last_start - 1;

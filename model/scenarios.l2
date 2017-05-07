@@ -11,18 +11,23 @@
 
 default (
 
-  sitfac{0};             [1:10]
-  sitfac{0};             [11:200]
-  %sitfac{10};             [41:200]
+  sitfac{0};              [1:45]
+  sitfac{000};            [46:80]
+  sitfac{0};              [81:90]
+  sitfac{000};            [91:300]
+
 
   anxiety{0};             [1]
   hr{100};                [1]
   physical_state{1.1};   	[1:Inf]
   breathing_f{0.1};       [1]
-  chest_phi{0};       [1]
-  chest_c{60};            [1]
+  used_chest_range{20};   [1]
+  chest_pos_phi{1};       [1]
+  chest_c{75};            [1]
+  chest_c2{75};           [1]
   breathing_intensity{0.99};  [1:Inf]
   chest_pos{2 rest};   	  [1:2]
+
 
   %chest_trans{0};   	    [1]
   %chest_trans_array{10};  [1]
