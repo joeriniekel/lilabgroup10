@@ -144,6 +144,7 @@ function result = chest_pos_phi( model, trace, parameters, t )
   range = trace(t+1).used_chest_range.arg{1};
   A = range / 2;
 
+  % prediction for x(t+1),     (because t is filled in...)
   % x1 = x(prev_t) = prev_A * sin(2*pi * prev_f * prev_t + 0);
   x1 = prev_A * sin(2*pi * prev_f * prev_t * dt + prev_phi);
   x1 = round(x1,sig);
@@ -157,10 +158,15 @@ function result = chest_pos_phi( model, trace, parameters, t )
   % 2*pi*new_f*prev_t + new_phi = asin( x(prev_t) / A) )
   % new_phi = asin( x(prev_t) / A) ) - 2*pi*new_f*prev_t
   phi = asin( x1 / prev_A) - 2*pi * f * prev_t * dt;
-  phi = mod(phi,2*pi)
-
+  phi = mod(phi,2*pi);
+  % prev_f
+  % f
+  x3 = prev_A * sin(2*pi * f * prev_t * dt + phi);
+  x4 = prev_A * sin(2*pi * prev_f * prev_t * dt + phi);
+  % disp(x4 - x3)
   % d_phi = (f * dt) * 2*pi;
   % phi = phi + d_phi;
+  % phi = 2*pi - phi;
 
   % x2 should have the same value as x1, even though the f is changed
   % x2 = x(prev_t) = prev_A * sin(2*pi * f * prev_t * dt + phi);
@@ -168,6 +174,7 @@ function result = chest_pos_phi( model, trace, parameters, t )
   %%%% x2 = prev_A * sin(2*pi * f * prev_t * dt + phi);
   %%%% x2 = round(x2,sig);
   %%%% if x2 < lower_bound, x2 = lower_bound; end;
+  % phi = 0;
   result = {t+1, 'chest_pos_phi', phi};
 end
 
@@ -191,24 +198,18 @@ function result = chest_c( model, trace, parameters, t )
   lower_bound = model.parameters.default.lower_bound;
   phi = trace(t+1).chest_pos_phi.arg{1};  %t+1 ?
 
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-  % phi = 0; %todo deze regel zou niet nodig moeten zijn
-
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   f = trace(t+1).breathing_f.arg{1};
   range = trace(t+1).used_chest_range.arg{1};
   A = range / 2;
-
-  % d_phi = (f * dt) * 2*pi;
-  % phi = phi - d_phi;
-
-  x2 = A * sin(2*pi* f * t * dt + phi);
+%---------------------------------------%
+                                        %
+  % twee opties                         %
+  x2 = A * sin(2*pi* f * 1 * dt + phi); %
+  % of                                  %
+  x2 = A * sin(2*pi* f * t * dt + 0);   %
+%---------------------------------------%
   x2 = round(x2,sig);
-  if x2 < lower_bound, x2 = lower_bound; end;
+  if x2 < lower_bound, x2 = lower_bound; disp('lb'); disp(t); end;
 
   min = model.parameters.default.min_chest_c;
   max = model.parameters.default.max_chest_c;
@@ -216,7 +217,7 @@ function result = chest_c( model, trace, parameters, t )
 
   chest_c = avg_chest_c + x2;
 
-  result = {t+1, 'chest_c', chest_c};
+  result = {t+1, 'chest_c', x2};
 end
 
 % oude chest_c
