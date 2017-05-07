@@ -11,10 +11,10 @@
 
 default (
 
-  sitfac{0};              [1:45]
-  sitfac{000};            [46:80]
-  sitfac{0};              [81:90]
-  sitfac{000};            [91:300]
+  sitfac{0};              [1:17]
+  sitfac{80};            [18:90]
+  sitfac{0};              [91:150]
+  sitfac{80};            [151:300]
 
 
   anxiety{0};             [1]
@@ -22,8 +22,8 @@ default (
   physical_state{1.1};   	[1:Inf]
   breathing_f{0.1};       [1]
   used_chest_range{20};   [1]
-  chest_pos_phi{1};       [1]
-  chest_c{75};            [1]
+  chest_pos_phi{0};       [1]
+  chest_c{0};            [1]
   chest_c2{75};           [1]
   breathing_intensity{0.99};  [1:Inf]
   chest_pos{2 rest};   	  [1:2]
