@@ -31,7 +31,7 @@ default (
   %factors for the strength of relations between concepts
 
   anxiety_decay;      0.05
-  sitfac_anxiety;     0.5
+  sitfac_anxiety;     0.8
   anxiety_hr;         0.9
   hr_breathing;       0.08
     %0.08

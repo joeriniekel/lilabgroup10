@@ -18,9 +18,8 @@ function result = anxiety_regulation( model, trace, parameters, t )
   breathing_f = trace(t).breathing_f.arg{1};
   disfac = model.parameters.default.disfac_on_regulation;
   b = model.parameters.default.breathing_anxiety;
-  tijdeleijke_param = 0;
 
-  anxiety_regulation = disfac + b * (1 - breathing_f + tijdeleijke_param);
+  anxiety_regulation = disfac + b * (1 - breathing_f);
 
   result = {t+1, 'anxiety_regulation', anxiety_regulation};
 end
@@ -151,7 +150,7 @@ function result = chest_pos_phi( model, trace, parameters, t )
   range = trace(t+1).used_chest_range.arg{1};
   A = range / 2;
 
-  sig = 2;  %significance
+  sig = 5;  %significance
   % x1 = x(prev_t) = A * sin(2*pi * prev_f * prev_t + 0);
   x1 = prev_A * sin(2*pi * prev_f * prev_t * dt + 0);
   x1 = round(x1,sig);             %ignore small values
