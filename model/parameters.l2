@@ -28,8 +28,10 @@ default (
   disfac;             1.5
   disfac_on_regulation; 0.5
 
-  %factors for the strength of relations between concepts
+  sig;                8
+  lower_bound;        0.000001
 
+  %factors for the strength of relations between concepts
   anxiety_decay;      0.05
   sitfac_anxiety;     0.8
   anxiety_hr;         0.9
