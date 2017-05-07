@@ -15,7 +15,6 @@ end
 
 
 function result = anxiety_regulation( model, trace, parameters, t )
-
   breathing_f = trace(t).breathing_f.arg{1};
   disfac = model.parameters.default.disfac_on_regulation;
   b = model.parameters.default.breathing_anxiety;
@@ -108,7 +107,6 @@ end
 
 %breathing_intensity
 % the relation of this concept is unknown. it should look like this:
-
 % function result = breathing_intensity( model, trace, parameters, t )
 %   % hoe sneller iemand ademt, hoe minder diep elke ademhaling is
 %   % bij snel ademen, ademt iemand maar voor 50% in.
@@ -135,144 +133,35 @@ end
 % end
 % chest_speed?
 
-function result = chest_pos_phi( model, trace, parameters, t )
-  prev_chest_c = trace(t).chest_c.arg{1};
-  prev_chest_pos = trace(t).chest_pos.arg{1};
-  f = trace(t+1).breathing_f.arg{1};
-  chest_range = trace(t+1).used_chest_range.arg{1};
-  dt = model.parameters.default.dt;
-  min = model.parameters.default.min_chest_c;
-  max = model.parameters.default.max_chest_c;
 
-  avg_chest_c = min + (max - min) / 2;    % the 'zero-line' of the wave/cycle (x(t) = 0)
-  A = chest_range / 2;
-  margin_above = avg_chest_c + A;
-  margin_below = avg_chest_c - A;
-
-  %the formula for a standard waveform is
-  % x(t) = A * sin(2*pi*f*t + phi)
-  %   phi in range[0,2*pi]
-  % thus:
-  % chest_c(t) = avg_chest_c + A * sin(2*pi*f*t + phi)
-  % new_chest_c = avg_chest_c + A * sin(2*pi*f*dt + phi)
-
-  % calculate phi of the prev chest_c diverted of the new breathing f
-  % x(t) = A * sin(2*pi*f*t + phi)
-  % x(0) = A * sin(2*pi*f*0 + phi)
-  % x(0) = A * sin(0 + phi)
-  % x(0) = A * sin(phi)
-  % let x(0) = prev_x
-  % prev_x = A * sin(phi)
-  % prev_x / A = sin(phi)
-  % phi = asin(prev_x / A)
-  prev_x = (prev_chest_c - avg_chest_c) / chest_range
-    % in range [-1,1]
-  % a value of 1 corresponds to phi = 0.5pi or phi = 1.5pi
-  % (this depends on whether the agent is breathing in our out)
-  phi = asin( prev_x / A )
-  % prev_chest_c
-  new_chest_c = avg_chest_c + A * sin(2*pi*f*dt + phi)
-
-  % phi in range[-0.5; 0.5]
-  % phase = positive number
-  % reduced/instantaneous phase = in range[0,1]
-  % phase = mod(n,1);     %the phase of the cycle: a number between 0 and 1
-
-  % phase of breathing cycle   chest_c
-  % 0 and 0.5                  'zero-line' = avg_chest_c
-  % 0.25                       max
-  % 0.75                       min
-
-  %calculate the phase of the prev chest_c diverted of the new breathing f
-  % prev_chest_pos
-  % prev_chest_c
-  % avg_chest_c
-  % amplitude
-  % pi
-  % phase = calc_phase(prev_chest_pos,prev_chest_c,avg_chest_c,amplitude)
-  % if strcmp(prev_chest_pos, '1 in') && prev_chest_c > avg_chest_c
-  %   %phase is between 0 and 0.25
-  %   relative_chest_c = (prev_chest_c - avg_chest_c) / amplitude;
-  %   phase = relative_chest_c / 4;
-  % elseif strcmp(prev_chest_pos, '1 in') && prev_chest_c < avg_chest_c
-  %   %phase is between 0.75 and 0
-  %   relative_chest_c = (avg_chest_c - prev_chest_c) / amplitude;
-  %   phase = (relative_chest_c / 4) + 0.75;
-  % elseif strcmp(prev_chest_pos, '3 out') && prev_chest_c > avg_chest_c
-  %   %phase is between 0.25 and 0.5
-  %   relative_chest_c = (prev_chest_c - avg_chest_c) / amplitude;
-  %   phase = (relative_chest_c / 4) + 0.25;
-  % else
-  %   % strcmp(prev_chest_pos, '3 out') && prev_chest_c < avg_chest_c
-  %   %phase is between 0.25 and 0.5
-  %   relative_chest_c = (avg_chest_c - prev_chest_c) / amplitude;
-  %   phase = (relative_chest_c / 4) + 0.5;
-  % end
-
-  %the phase of the previous chest_c is now calculated
-  %now calculate the new chest_c
-  % new_phase = phase + chest_speed / dt;
-  % new_chest_c = phase
-  %if chest_c > margin_above
-  % change direction
-  %if chest_c < margin_below
-  % change direction
-
-
-  %option: use sinus waveform instead of triangle
-  % chest_pos = '1 in'; % POS;          {1 in, 2 rest, 3 out}
-  result = {t+1, 'chest_phi', phi};
-end
-
-function result = chest_c( model, trace, parameters, t )
-  prev_chest_c = trace(t).chest_c.arg{1};
-  f = trace(t+1).breathing_f.arg{1};
-  chest_range = trace(t+1).used_chest_range.arg{1};
-  dt = model.parameters.default.dt;
-  min = model.parameters.default.min_chest_c;
-  max = model.parameters.default.max_chest_c;
-
-  avg_chest_c = min + (max - min) / 2;    % the 'zero-line' of the wave/cycle (x(t) = 0)
-  A = chest_range / 2;
-
-  % prev_x = (prev_chest_c - avg_chest_c) / chest_range;
-  %
-  % phi = asin( prev_x / A );
-  phi = trace(t+1).chest_phi.arg{1};
-  new_chest_c = avg_chest_c + A * sin(2*pi*f*dt + phi);
-  % chest_c = 70;
-
-  result = {t+1, 'chest_c', new_chest_c};
-end
 
 % oude chest_c
-% function result = chest_c( model, trace, parameters, t )
-%
-%     dt = model.parameters.default.dt;
-%     max_c = model.parameters.default.max_chest_c;
-%     min_c = model.parameters.default.min_chest_c;
-%     breathing_f = trace(t+1).breathing_f.arg{1};
-%     %breathing_f = n/s
-%     %n = breathing_f * s;
-%
-%     n = breathing_f * t * dt;   %number of breathing cycles
-%     phase = mod(n,1);     %the phase of the cycle: a number between 0 and 1
-%     %in this case the breathing cycle always starts at t=0
-%
-%     if phase < 0.5
-%         phi = phase;
-%     else
-%         phi = 1 - phase;
-%     end
-%     chest_c = max_c * 2 * phi;
-%
-%     result = {t+1, 'chest_c', chest_c};
-% end
+function result = chest_c( model, trace, parameters, t )
+    dt = model.parameters.default.dt;
+    max_c = model.parameters.default.max_chest_c;
+    min_c = model.parameters.default.min_chest_c;
+    breathing_f = trace(t+1).breathing_f.arg{1};
+    %breathing_f = n/s
+    %n = breathing_f * s;
+
+    n = breathing_f * t * dt;   %number of breathing cycles
+    phase = mod(n,1);     %the phase of the cycle: a number between 0 and 1
+    %in this case the breathing cycle always starts at t=0
+
+    if phase < 0.5
+        phi = phase;
+    else
+        phi = 1 - phase;
+    end
+    chest_c = max_c * 2 * phi;
+
+    result = {t+1, 'chest_c', chest_c};
+end
 
 % oude chest_pos
 function result = chest_pos( model, trace, parameters, t )
-  curr_chest_c = trace(t+1).chest_c.arg{1}
-  prev_chest_c = trace(t).chest_c.arg{1}
+  curr_chest_c = trace(t+1).chest_c.arg{1};
+  prev_chest_c = trace(t).chest_c.arg{1};
   margin = model.parameters.default.margin;
 
   if curr_chest_c > prev_chest_c + margin
@@ -284,6 +173,8 @@ function result = chest_pos( model, trace, parameters, t )
   end
   result = {t+2, 'chest_pos', {chest_pos}};
 end
+
+
 
 
 

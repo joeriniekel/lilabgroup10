@@ -4,15 +4,15 @@ clc
 disp('Running model...')
 model = l2('model');
 %model.simulate(5, 'COM3');
-model.simulate(5,'default','default');
-disp('Simulation finished');
+model.simulate(50,'default','default');
+disp('Simulatin finished');
 %model.plot();
 
 model.plot({'anxiety','sitfac', 'hr',...
     'breathing_f', 'physical_state','chest_phi'...
     'chest_c','graph_bel_chest_pos',...
     'graph_bel_breathing_f','graph_breathing_f_error',...
-    'graph_bel_breathing_acc'});
+    'graph_bel_breathing_acc','graph_bel_breathing_pattern'});
 %graph_bel_breathing_pattern
 %plot belief...
 
