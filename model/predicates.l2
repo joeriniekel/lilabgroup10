@@ -1,16 +1,20 @@
 erl;	REAL
 v2;		REAL
 
-
 anxiety;        REAL
 sitfac;         REAL
-
 hr;             REAL
 breathing_f;    REAL
 physical_state; REAL
 performance;    REAL
-
 chest_c;        REAL
+
+used_chest_range; REAL
+chest_speed;    REAL
+breathing_intensity;  REAL
+chest_pos2;      {POS}
+
+
 chest_pos;      {POS}
 chest_trans;    BOOLEAN
       %chest_pos transition
@@ -22,8 +26,6 @@ breathing_acc;	REAL
 breathing_pattern;  {PATTERN}
 
 
-%breathing_abnormality_factor; REAL
-  %
 
 
 observe;            {OBSERVE}

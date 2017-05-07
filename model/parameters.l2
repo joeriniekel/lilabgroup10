@@ -19,10 +19,11 @@
 
 default (
 
-  dt;                 0.1
+  dt;                 1
   bhr;                90
   max_chest_c;        80
   min_chest_c;        60
+  max_chest_range;    20
   margin;             10
   disfac;             1.5
 

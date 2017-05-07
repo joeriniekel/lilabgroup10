@@ -8,25 +8,24 @@ end
 
 function result = anxiety( model, trace, parameters, t )
   % sitfac2 = trace(t).sitfac.arg{1}; %gives errors
-    for sf = l2.getall(trace, t, 'sitfac', {NaN}) %t+1? todo
-        sitfac = sf.arg{1};
+  for sf = l2.getall(trace, t, 'sitfac', {NaN}) %t+1? todo
+    sitfac = sf.arg{1};
 
-        prev_anxiety = trace(t).anxiety.arg{1};
-        %sitfac = trace(t).sitfac.arg{1}; %gives errors
-        breathing_f = trace(t).breathing_f.arg{1};
+    prev_anxiety = trace(t).anxiety.arg{1};
+    %sitfac = trace(t).sitfac.arg{1}; %gives errors
+    breathing_f = trace(t).breathing_f.arg{1};
 
-        decay = model.parameters.default.anxiety_decay;
-        disfac = model.parameters.default.disfac;
-        s = model.parameters.default.sitfac_anxiety;
-        b = model.parameters.default.breathing_anxiety;
+    decay = model.parameters.default.anxiety_decay;
+    disfac = model.parameters.default.disfac;
+    s = model.parameters.default.sitfac_anxiety;
+    b = model.parameters.default.breathing_anxiety;
+    %dispositional factors affect the intensity of anxiety provoking
+    %situations
+    new_anxiety = prev_anxiety * decay + ...
+      disfac * (s * sitfac + b * breathing_f);
 
-        %dispositional factors affect the intensity of anxiety provoking
-        %situations
-        new_anxiety = prev_anxiety * decay + ...
-            disfac * (s * sitfac + b * breathing_f);
-
-        result = {t+1, 'anxiety', new_anxiety};
-    end
+    result = {t+1, 'anxiety', new_anxiety};
+  end
 end
 
 function result = hr( model, trace, parameters, t )
@@ -53,6 +52,84 @@ function result = breathing_f( model, trace, parameters, t )
   result = {t+1, 'breathing_f', breathing_f};
 end
 
+
+
+
+% chest_c veroorzaakt nu schokken
+% een betere modulatie zou zijn:
+%   bepaal huidige transition:  in- of uitademen
+%   bepaal hr, bepaal breathing f
+%   bepaal de snelheid waarmee de chest pos moet bewegen
+%     (f/afstand)
+%   bepaal aan de hand daarvan de nieuwe chest pos (e.g. oude pos + 2cm)
+%
+%   op deze manier is het modeleren van afwijkingen ook logischer
+
+
+function result = breathing_intensity( model, trace, parameters, t )
+  % hoe sneller iemand ademt, hoe minder diep elke ademhaling is
+  % bij snel ademen, ademt iemand maar voor 50% in.
+  breathing_f = trace(t+1).breathing_f.arg{1};
+  max_breathing_f = 3;
+  % min_breathing_f = 0;
+  breathing_intensity = breathing_f / max_breathing_f;
+
+  result = {t+1, 'breathing_intensity', breathing_intensity};
+end
+
+% hr -> breathing f
+% breathing f -> breathing intensity -> used chest c range
+% breathing f + intensity -> chest movement speed (average)
+
+function result = used_chest_range( model, trace, parameters, t )
+
+  breathing_intensity = trace(t+1).breathing_intensity.arg{1};
+
+  relative_chest_range_used = 1 - breathing_intensity;
+  max = model.parameters.default.max_chest_range;
+  chest_range_factor = 1;
+  used_chest_range = max * relative_chest_range_used * chest_range_factor;
+
+  result = {t+1, 'used_chest_range', used_chest_range};
+end
+
+function result = chest_speed( model, trace, parameters, t )
+  breathing_f = trace(t+1).breathing_f.arg{1};
+  used_chest_range = trace(t+1).used_chest_range.arg{1};
+  chest_speed = used_chest_range / breathing_f;
+  result = {t+1, 'chest_speed', chest_speed};
+end
+
+% function result = chest_pos2( model, trace, parameters, t )
+%   prev_chest_c = trace(t).chest_c.arg{1};
+%   breathing_f = trace(t+1).breathing_f.arg{1};
+%   breathing_intensity = trace(t+1).breathing_intensity.arg{1};
+%
+%   min = model.parameters.default.min_chest_c;
+%   max = model.parameters.default.max_chest_c;
+%   max_range = max - min;
+%   deviation = range *  / 2;
+%   avg_chest_c = min + (max - min) / 2;
+%
+%   max_chest_c_used =
+%   min_chest_c_used =
+%
+%   chest_pos = '1 in'; % POS;          {1 in, 2 rest, 3 out}
+%   result = {t+1, 'chest_pos2', {chest_pos}};
+% end
+
+
+  % chest_c = 'min';
+  % chest_pos = 'in';
+  % chest_c = 'half';
+  % chest_c = 'max';
+  % chest_pos = 'out';
+  % chest_c = 'half';
+  % chest_c = 'min';
+  % chest_pos = 'out';
+% end
+
+
 function result = chest_c( model, trace, parameters, t )
 
     dt = model.parameters.default.dt;
@@ -75,20 +152,6 @@ function result = chest_c( model, trace, parameters, t )
 
     result = {t+1, 'chest_c', chest_c};
 end
-
-% function result = chest_c( model, trace, parameters, t )
-% chest_c veroorzaakt nu schokken
-% een betere modulatie zou zijn:
-%   bepaal huidige transition:  in- of uitademen
-%   bepaal hr, bepaal breathing f
-%   bepaal de snelheid waarmee de chest pos moet bewegen
-%     (f/afstand)
-%   bepaal aan de hand daarvan de nieuwe chest pos (e.g. oude pos + 2cm)
-%
-%   op deze manier is het modeleren van afwijkingen ook logischer
-% end
-
-
 
 function result = chest_pos( model, trace, parameters, t )
   % anxiety = trace(t).chest_c.arg{1};
@@ -246,26 +309,7 @@ end
 % end
 
 function result = bel_breathing_f( model, trace, parameters, t )
-
-  % chest_pos = l2.getall(trace, t+1, 'belief', predicate('chest_trans', NaN)).arg{1}.arg{1};
-  % start = 1;
-  % max = 10;
-  % if t > 10
-  %   start = t-max;
-  % end
-  % v = [];
-  % % cell = {};
-  % for i=start:t
-  %   val = l2.getall(trace, i+1, 'belief', predicate('chest_trans', NaN)).arg{1}.arg{1};
-  %   % cell{i} = [val];
-  %   v(i) = val;
-  % end
-  %raw calculation (incl. incomplete breathing cycles)
-  % n_cycles = sum(v);  % count transitions to 'in'; number of instances that are true in the vector
-  % breathing_f = n_cycles / max;
-  %
-  % first_start_of_cycle = find(v==1,1); %returns the index number
-
+  %calculate believed breathing frequency
   %search backwards; search until enough breathing cycles are found
   n_cycles = 3;
   max = 10000;  %afhankelijk van params maken --> dt...
