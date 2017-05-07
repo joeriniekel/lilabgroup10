@@ -14,7 +14,8 @@ used_chest_range; REAL
 chest_speed;    REAL
 breathing_intensity;  REAL
 chest_pos2;      {POS}
-
+chest_c2;       REAL
+chest_phi;      REAL
 
 chest_pos;      {POS}
 chest_trans;    BOOLEAN

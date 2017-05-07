@@ -34,6 +34,7 @@ default (
   sitfac_anxiety;     0.5
   anxiety_hr;         0.9
   hr_breathing;       0.08
+    %0.08
   hr_breathing_exp;   1.0
   breathing_anxiety;  0.5
 
