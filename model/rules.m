@@ -133,10 +133,90 @@ end
 % end
 % chest_speed?
 
+function result = chest_pos_phi( model, trace, parameters, t )
+  %determine the chest position/transition by calculating the phase
+  %first a new waveform will be recalculated with a different phase for a different f
+  %this can be used to calculate the new x(t) and thus the new chest_c
 
+  %note that phi itself will have a sawtooth waveshape instead of a sin
+  dt = model.parameters.default.dt;
+  %previous values
+  prev_f = trace(t).breathing_f.arg{1};
+  prev_t = t - 1;
+  prev_phi = trace(t).chest_pos_phi.arg{1};
+  prev_range = trace(t).used_chest_range.arg{1};
+  prev_A = prev_range / 2;
+  %current values
+  f = trace(t+1).breathing_f.arg{1};
+  range = trace(t+1).used_chest_range.arg{1};
+  A = range / 2;
+
+  sig = 2;  %significance
+  % x1 = x(prev_t) = A * sin(2*pi * prev_f * prev_t + 0);
+  x1 = prev_A * sin(2*pi * prev_f * prev_t * dt + 0);
+  x1 = round(x1,sig);             %ignore small values
+  if x1< 0.001, x1 = 0; end;      %ignore tiny values
+  %because f can change,
+  % x2 = x(prev_t) = prev_A * sin(2*pi * f * prev_t + phi);
+  % Thus: x1 = x2 = x(prev_t),  but x2 has a different breathing f
+  % phi is unknown; subtract phi:
+  % new formula - omschrijven:
+  % x2 = x1 = prev_A * sin(2*pi*new_f*prev_t + new_phi);
+  % 2*pi*new_f*prev_t + new_phi = asin( x(prev_t) / A) )
+  % x1 = t;
+  phi = asin( x1 / prev_A) - 2*pi * f * prev_t * dt;
+  phi = mod(phi,2*pi);
+  if phi > 2*pi, disp('groot');end;
+  if phi < -2*pi, disp('klein');end;
+
+  % x2 should have the same value as x1, even though the f is changed
+  % x2 = x(prev_t) = A * sin(2*pi*new_f*prev_t + new_phi);
+
+  result = {t+1, 'chest_pos_phi', phi};
+end
+
+%chest pos 2
+%
+%end
+
+
+% function result = x1( model, trace, parameters, t )
+%   dt = model.parameters.default.dt;
+%   %previous values
+%   prev_f = trace(t).breathing_f.arg{1};
+%   prev_t = t - 1;
+%   prev_phi = trace(t).chest_pos_phi.arg{1};
+%   prev_range = trace(t).used_chest_range.arg{1};
+%   prev_A = prev_range / 2;
+%   %current values
+%   sig = 5;  %significance
+%   % x1 = x(prev_t) = A * sin(2*pi * prev_f * prev_t + 0);
+%   x1 = prev_A * sin(2*pi * prev_f * prev_t * dt + 0);
+%   x1 = round(x1,sig);             %ignore small values
+%   if x1< 0.001, x1 = 0; end;      %ignore tiny values
+%   result = {t+1, 'x1', x1};
+% end
+function result = chest_c( model, trace, parameters, t )
+  dt = model.parameters.default.dt;
+  phi = trace(t+1).chest_pos_phi.arg{1};
+  f = trace(t+1).breathing_f.arg{1};
+  range = trace(t+1).used_chest_range.arg{1};
+  A = range / 2;
+
+  x2 = A * sin(2*pi* f * t * dt + phi);
+  if x2< 0.001, x2 = 0; end;
+
+  min = model.parameters.default.min_chest_c;
+  max = model.parameters.default.max_chest_c;
+  avg_chest_c = min + (max - min) / 2;
+
+  chest_c = avg_chest_c + x2;
+
+  result = {t+1, 'chest_c', chest_c};
+end
 
 % oude chest_c
-function result = chest_c( model, trace, parameters, t )
+function result = chest_c2( model, trace, parameters, t )
     dt = model.parameters.default.dt;
     max_c = model.parameters.default.max_chest_c;
     min_c = model.parameters.default.min_chest_c;
@@ -155,7 +235,7 @@ function result = chest_c( model, trace, parameters, t )
     end
     chest_c = max_c * 2 * phi;
 
-    result = {t+1, 'chest_c', chest_c};
+    result = {t+1, 'chest_c2', chest_c};
 end
 
 % oude chest_pos
@@ -315,7 +395,7 @@ function result = bel_breathing_f( model, trace, parameters, t )
     t_last_start = t - find(v==1,1); %can be [] (empty)
     if isempty(t_last_start)          %no cycles found: return 0
       breathing_f = 0;
-      disp('no cycles found')
+      % disp('no cycles found')
     else
       t_start = a;
       t_end = t_last_start - 1;
