@@ -11,8 +11,8 @@
 
 default (
 
-  sitfac{0};              [1:17]
-  sitfac{00};            [18:90]
+  sitfac{0};              [1:30]
+  sitfac{90};            [31:90]
   sitfac{0};              [91:150]
   sitfac{80};            [151:300]
 
@@ -29,8 +29,9 @@ default (
   chest_c4{65};           [1]
   prev_relative_c{0};     [1]
 
-
-  breathing_intensity{0.99};  [1:Inf]
+  %breathing_intensity{0.99};  [1:Inf]
+  breathing_intensity{0.99};  [1:60]
+  breathing_intensity{0.40};  [61:200]
   chest_pos{2 rest};   	  [1:2]
   starting_dir{1 in};        [1]
 

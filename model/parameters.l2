@@ -19,8 +19,10 @@
 
 default (
 
-  dt;                 0.5
+  dt;                 1
+    %when dt is changed, f and hr will also be affected
   bhr;                90
+  lhr;                50
   max_chest_c;        80
   min_chest_c;        60
   max_chest_range;    20

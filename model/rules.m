@@ -67,11 +67,13 @@ function result = hr( model, trace, parameters, t )
 
   dt = model.parameters.default.dt;
   anxiety = trace(t+1).anxiety.arg{1};
-  bhr = dt * model.parameters.default.bhr;
+  bhr = dt * model.parameters.default.bhr; %todo kan dit?
+  lhr = dt * model.parameters.default.lhr;
   ps = trace(t).physical_state.arg{1}; % t+1 doesn't work with this syntax + scenario values
   a = model.parameters.default.anxiety_hr;
 
   hr_new = (bhr * ps) + (a * anxiety);  % * rand
+  if hr_new < lhr, hr_new = lhr; disp('lhr reached!'); end;
 
   result = {t+1, 'hr', hr_new};
 end
@@ -85,7 +87,7 @@ function result = breathing_f( model, trace, parameters, t )
   breathing_f_in_bpm = h * hr ^ h2;
   breathing_f = breathing_f_in_bpm / 60;% + 0.001*rand;
 
-  breathing_f = 0.21; %todo
+  % breathing_f = 0.21;
 
   result = {t+1, 'breathing_f', breathing_f};
 end
