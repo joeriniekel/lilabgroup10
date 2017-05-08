@@ -16,9 +16,16 @@ breathing_intensity;  REAL
 chest_pos2;      {POS}
 chest_c2;       REAL
 chest_c3;       REAL
+chest_c4;       REAL
+phase_shift;    REAL
+prev_phase_shift; REAL
+
+
 chest_pos_phi;      REAL
   % = position of the cycle
 x1;             REAL
+
+starting_dir;   {POS}
 
 chest_pos;      {POS}
 chest_trans;    BOOLEAN
