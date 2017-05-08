@@ -1,0 +1,55 @@
+%domain model
+  % dt          = the amount of seconds simulated per time step
+      %0.1 is realistic
+      %1.0 results in faster rendering
+  % bhr         = basic heart rate in bpm
+  % lhr         = lowest possible hr, safety limit
+  % max_chest_c = max_chest_circumfence in cm
+  % margin      = the sensitivity used to determine a change in chest position
+%analysis model
+  % chest_trans_mode  = option to let chest transition be dependent on '1 in' or '3 out'
+                        %the value can be 1 or 3
+  %breathing frequency
+  % n_breathing_cycles  = number of full breathing cycles
+  % max_interval_t      = in s, dependent of dt
+  %breathing f acceleration
+  % acc_interval        = number of timeframes used to search for accelerations
+  % acc_margin          = sensitivity of search
+  %breathing f pattern
+  % pattern_interval    = number of timeframes used to search for accelerations
+
+default (
+
+  dt;                 1
+    %when dt is changed, f and hr will also be affected
+  bhr;                90
+  lhr;                50
+  max_chest_c;        80
+  min_chest_c;        60
+  max_chest_range;    20
+  disfac;             1.5
+  disfac_on_regulation; 0.5
+
+  sig;                8
+  lower_bound;        -100000
+
+  %factors for the strength of relations between concepts
+  anxiety_decay;      0.05
+  sitfac_anxiety;     0.8
+  anxiety_hr;         0.9
+  hr_breathing;       0.08
+    %0.08
+  hr_breathing_exp;   1.0
+  breathing_anxiety;  0.5
+
+  % analysis model
+  chest_c_margin;     4.0
+  chest_change_mode;   1
+
+  %breathing f
+  n_breathing_cycles; 10;
+  max_interval_t;     10000;
+  acc_interval;       5
+  acc_margin;         0.01
+  pattern_interval;   10
+)

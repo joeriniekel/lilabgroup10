@@ -1,0 +1,51 @@
+observe;            {OBSERVE}
+belief;             {BELIEF}
+desire;             {DESIRE}
+predict;            {PREDICT}
+assume;             {ASSUME}
+deviation;          {DEVIATION}
+sensitivity;        {SENS}
+
+
+
+erl;	REAL
+v2;		REAL
+
+% DOMAIN MODEL
+anxiety;              REAL
+anxiety_regulation;   REAL
+sitfac;               REAL
+hr;                   REAL
+breathing_f;          REAL
+physical_state;       REAL
+performance;          REAL
+breathing_intensity;  REAL
+used_chest_range;     REAL
+chest_c;              REAL
+prev_relative_c;      REAL
+prev_phase_shift;     REAL
+starting_dir;         {POS}
+
+% ANALYSIS MODEL
+chest_pos;             {POS}
+chest_change;          BOOLEAN
+breathing_acc;	       REAL
+	%acceleration of the breathing f
+	%(thus the amount the breathing f increases)
+breathing_pattern;  {PATTERN}
+
+
+
+
+
+
+% Graphs
+graph_bel_chest_pos;          {POS}
+graph_bel_chest_change;       BOOLEAN
+graph_bel_breathing_f;        REAL
+graph_breathing_f_error;      REAL
+graph_bel_breathing_acc;      REAL
+graph_bel_breathing_pattern;  {PATTERN}
+
+%lightvalue;                 REAL
+%light;                      SWITCH
