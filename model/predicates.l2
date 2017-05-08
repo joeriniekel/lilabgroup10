@@ -18,6 +18,7 @@ chest_c2;       REAL
 chest_c3;       REAL
 chest_c4;       REAL
 phase_shift;    REAL
+prev_relative_c;  REAL
 prev_phase_shift; REAL
 
 

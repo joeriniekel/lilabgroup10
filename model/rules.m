@@ -334,20 +334,37 @@ function result = chest_pos( model, trace, parameters, t )
 end
 
 
-function result = prev_phase_shift( model, trace, parameters, t )
-  %phase_shift of chest_c-cycle on t-1,
-  % value will be used in t to calculate chest_c
-  % to calculate the phase, we need the new used_chest_range
-  t
-  prev_chest_c      = trace(t).chest_c4.arg{1};
-  prev_starting_dir = trace(t).starting_dir.arg{1};
-  range             = trace(t+1).used_chest_range.arg{1};
-  f                 = trace(t+1).breathing_f.arg{1};
 
-  dt                = model.parameters.default.dt;
+
+
+function result = prev_relative_c( model, trace, parameters, t )
+  %the value of chest_c relative to the preferred/used chest_range
+  prev_chest_c      = trace(t).chest_c4.arg{1};           % 60-80
+  % prev_starting_dir = trace(t).starting_dir.arg{1};
+  range             = trace(t+1).used_chest_range.arg{1}; % 19
   min               = model.parameters.default.min_chest_c;
   max               = model.parameters.default.max_chest_c;
-  avg_chest_c       = min + ((max - min) / 2);
+  avg_chest_c       = min + ((max - min) / 2);            % 70
+  A = range / 2;
+
+  relative_c = (prev_chest_c - avg_chest_c) / A;
+    % value is in range [-1,1], except when the range changes during simulation
+  if      relative_c >  1, relative_c =  1;
+  elseif  relative_c < -1, relative_c = -1;  end;
+
+  result = {t+1, 'prev_relative_c', relative_c};
+end
+
+function result = prev_phase_shift( model, trace, parameters, t )
+  %phase_shift of chest_c-cycle on t-1,
+  % value will be used in (t-1) to calculate chest_c
+  % to calculate the phase, we need the new used_chest_range
+
+  % prev_chest_c      = trace(t).chest_c4.arg{1};
+  prev_starting_dir = trace(t).starting_dir.arg{1};
+  relative_c        = trace(t+1).prev_relative_c.arg{1};
+  range             = trace(t+1).used_chest_range.arg{1};
+  f                 = trace(t+1).breathing_f.arg{1};
 
   %formula for a basic sin wave:  x(t) = A * sin(2*pi* f * t) + d;
   % This: chest_c = A * sin(2*pi* f * t) + avg_chest_c;
@@ -356,58 +373,42 @@ function result = prev_phase_shift( model, trace, parameters, t )
   %   Let t = 1 and use +phi to shift the wave (with +phi in range[0,2pi])
   %   phi has to be calculate manually because the range is also variable
   %   (phi = asin( x(t)/prev_A) -2*pi*f*t) can not be used
-  % range = range +10;
-  relative_c = (prev_chest_c - avg_chest_c) / range
-    % value is in range [-1,1], except when the range changes
-  if      relative_c >  1, relative_c =  1;
-  elseif  relative_c < -1, relative_c = -1;  end;
-  % relative_c = asin(relative_c);
 
   % calculate the phase shift (phi)
-  % 2pi = a full shift
-  % 1pi = a half shift (inverted direction)
-
-  % prev_starting_dir = '1 in';
-
-  % use asin to convert the [-1,1] to a 'sin-shape'   (0.25 and 0.75 are mostly affected)
-  % phi = asin(relative_c) * pi   %convert the value to pi-rad
-
+  %  2pi = a full shift
+  %  1pi = a half shift (inverted direction)
+  %.5pi = heighest point
+  val = relative_c * 0.5 * pi;
+  %%% use asin to convert the [-1,1] to a 'sin-shape'   (0.25 and 0.75 are mostly affected)
+  %%% val = asin(val)?
   if strcmp(prev_starting_dir, '1 in')
     %convert to 2pi
-    phi = relative_c * 0.5 * pi
+    phi = val;
   else
     %   % prev_starting_dir = '3 out'
-    if relative_c > 0
-      phi = relative_c * -1 * 0.5 * pi
-    else
-      phi = relative_c * -1 * 0.5 * pi
-    end
+    phi = val * -1 + pi;
+    % if relative_c > 0       % make pos relative_c negative
+    %   phi = val * -1 + pi;
+    % else                    % make negative relative_c positive
+    %   phi = val * -1 + pi;
+    % end
   end
 
-  % plot(t,sin(2*pi*f*t + 0.2*pi + pi))
+  % phi
+  % phi = .25*pi;
+  % if t > 3,    phi = 0.49*pi;   end;
+  % if t > 6,    phi = -0.25*pi;  end;
+  % phi
 
-  % if strcmp(prev_starting_dir, '1 in')
-  %   phi = relative_c * 0.5*pi;
-  %   phi2 = acos(relative_c);
-  %   phi3 = asin( relative_c ) - 2*pi*f;
-  %   % 20% = 0.2 corresponds to a phase shift of   +0.1pi
-  %   %      -0.2   ~   -0.1pi or + (2 - 0.1)pi = 1.9pi
-  %     %   sin(2*pi - (2 - 0.1)*pi) = sin(2*pi - 0.1*pi + pi)
-  % else
-  %   % prev_starting_dir = '3 out'
-  %   phi = relative_c * -0.5*pi + pi;
-  %   phi2 = acos(relative_c) + pi;
-  %   phi3 = asin( relative_c ) - 2*pi*f
-  %   % 20% = 0.2 corresponds to a phase shift of   -0.1pi
-  %   %      -0.2   ~   +0.1pi
-  % end
-  % sinus_phi = sin(phi)
-  % phi = 1;
   result = {t+1, 'prev_phase_shift', phi}; % + 0.25*pi
 end
 
 
+
+
 function result = chest_c4( model, trace, parameters, t )
+  prev_chest_c      = trace(t).chest_c4.arg{1};
+
   f     = trace(t+1).breathing_f.arg{1};
   range = trace(t+1).used_chest_range.arg{1};
   phi   = trace(t+1).prev_phase_shift.arg{1};
@@ -415,12 +416,21 @@ function result = chest_c4( model, trace, parameters, t )
   dt    = model.parameters.default.dt;
   min   = model.parameters.default.min_chest_c;
   max   = model.parameters.default.max_chest_c;
-  avg_chest_c = min + ((max - min) / 2);
+  avg_chest_c = min + ((max - min) / 2); % 80
   % f = dt * f;
   A = range / 2;
   % phi = phi * -1;
   curr_chest_c = A * sin(2*pi* f * dt + phi) + avg_chest_c;
 
+  margin = 0.2;
+  add = 0;
+  if curr_chest_c == prev_chest_c + margin
+    disp('curr_chest_c == prev_chest_c')
+    curr_chest_c = curr_chest_c + add;
+  elseif curr_chest_c == prev_chest_c - margin
+    disp('curr_chest_c == prev_chest_c')
+    curr_chest_c = curr_chest_c + add;
+  end
   result = {t+1, 'chest_c4', curr_chest_c};
 end
 

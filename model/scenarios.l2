@@ -26,9 +26,10 @@ default (
   chest_c{0};             [1]
   chest_c2{75};           [1]
   chest_c3{70};           [1:2]
-  chest_c4{70};           [1]
-  phase_shift{0};           [1]
-  %prev_phase_shift{0}; [1]
+  chest_c4{65};           [1]
+  prev_relative_c{0};     [1]
+
+
   breathing_intensity{0.99};  [1:Inf]
   chest_pos{2 rest};   	  [1:2]
   starting_dir{1 in};        [1]
