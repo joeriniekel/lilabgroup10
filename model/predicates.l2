@@ -1,38 +1,3 @@
-erl;	REAL
-v2;		REAL
-
-anxiety;        REAL
-anxiety_regulation; REAL
-sitfac;         REAL
-hr;             REAL
-breathing_f;    REAL
-physical_state; REAL
-performance;    REAL
-chest_c;        REAL
-
-used_chest_range; REAL
-chest_speed;    REAL
-breathing_intensity;  REAL
-chest_pos2;      {POS}
-chest_c2;       REAL
-chest_c3;       REAL
-chest_pos_phi;      REAL
-  % = position of the cycle
-x1;             REAL
-
-chest_pos;      {POS}
-chest_trans;    BOOLEAN
-      %chest_pos transition
-      %naam veranderen naar chest_change?
-
-breathing_acc;	REAL
-	%acceleration of the breathing f
-	%(thus the amount the breathing f increases)
-breathing_pattern;  {PATTERN}
-
-
-
-
 observe;            {OBSERVE}
 belief;             {BELIEF}
 desire;             {DESIRE}
@@ -41,12 +6,45 @@ assume;             {ASSUME}
 deviation;          {DEVIATION}
 sensitivity;        {SENS}
 
-% graphs
-graph_bel_chest_pos;    REAL
-graph_bel_chest_trans;  BOOLEAN
-graph_bel_breathing_f;  REAL
-graph_breathing_f_error;  REAL
-graph_bel_breathing_acc;  REAL
+
+
+erl;	REAL
+v2;		REAL
+
+% DOMAIN MODEL
+anxiety;              REAL
+anxiety_regulation;   REAL
+sitfac;               REAL
+hr;                   REAL
+breathing_f;          REAL
+physical_state;       REAL
+performance;          REAL
+breathing_intensity;  REAL
+used_chest_range;     REAL
+chest_c;              REAL
+prev_relative_c;      REAL
+prev_phase_shift;     REAL
+starting_dir;         {POS}
+
+% ANALYSIS MODEL
+chest_pos;             {POS}
+chest_change;          BOOLEAN
+breathing_acc;	       REAL
+	%acceleration of the breathing f
+	%(thus the amount the breathing f increases)
+breathing_pattern;  {PATTERN}
+
+
+
+
+
+
+% Graphs
+graph_bel_chest_pos;          {POS}
+graph_bel_chest_change;       BOOLEAN
+graph_bel_breathing_f;        REAL
+graph_breathing_f_error;      REAL
+graph_bel_breathing_acc;      REAL
 graph_bel_breathing_pattern;  {PATTERN}
 
 %lightvalue;                 REAL

@@ -11,37 +11,32 @@
 
 default (
 
-  sitfac{0};              [1:17]
-  sitfac{00};            [18:90]
+  sitfac{0};              [1:30]
+  sitfac{90};             [31:90]
   sitfac{0};              [91:150]
-  sitfac{80};            [151:300]
-
+  sitfac{80};             [151:300]
 
   anxiety{0};             [1]
   hr{100};                [1]
   physical_state{1.1};   	[1:Inf]
   breathing_f{0.1};       [1]
   used_chest_range{20};   [1]
-  chest_pos_phi{0};       [1]
-  chest_c{0};            [1]
-  chest_c2{75};           [1]
-  chest_c3{75};           [1:2]
-  breathing_intensity{0.99};  [1:Inf]
-  chest_pos{2 rest};   	  [1:2]
+  chest_c{65};            [1]
+  prev_relative_c{0};     [1]
 
-
-  %chest_trans{0};   	    [1]
-  %chest_trans_array{10};  [1]
+  %breathing_intensity{0.99};  [1:Inf]
+  breathing_intensity{0.99};  [1:60]
+  breathing_intensity{0.40};  [61:300]
+  starting_dir{1 in};         [1]
 
   % beliefs
-  belief{chest_c{10}};        [1]
-  belief{chest_pos{2 rest}};  [1]
-  belief{chest_trans{true}};  [1]
-    %needs to be defined because (t+2) is used
-  belief{breathing_f{10}};    [1]
-  %belief{breathing_acc{10}};    [1]
+    belief{chest_c{10}};        [1]
+    belief{chest_pos{2 rest}};  [1]
+    %belief{chest_change{true}};  [1]
+      %needs to be defined because (t+2) is used
+    belief{breathing_f{10}};    [1]
 
-  %graph_breathing_f_error{0}; [1:Inf]
+  graph_breathing_f_error{0};   [1:Inf]
 
   %v2{10};                 [1:Inf]
   %lightvalue{rtinput_lightsensor}; [1:Inf]

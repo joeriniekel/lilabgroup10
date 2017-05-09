@@ -3,6 +3,7 @@
       %0.1 is realistic
       %1.0 results in faster rendering
   % bhr         = basic heart rate in bpm
+  % lhr         = lowest possible hr, safety limit
   % max_chest_c = max_chest_circumfence in cm
   % margin      = the sensitivity used to determine a change in chest position
 %analysis model
@@ -19,12 +20,13 @@
 
 default (
 
-  dt;                 0.5
+  dt;                 1
+    %when dt is changed, f and hr will also be affected
   bhr;                90
+  lhr;                50
   max_chest_c;        80
   min_chest_c;        60
   max_chest_range;    20
-  margin;             10
   disfac;             1.5
   disfac_on_regulation; 0.5
 
@@ -41,7 +43,8 @@ default (
   breathing_anxiety;  0.5
 
   % analysis model
-  chest_trans_mode;   1
+  chest_c_margin;     4.0
+  chest_change_mode;   1
 
   %breathing f
   n_breathing_cycles; 10;
