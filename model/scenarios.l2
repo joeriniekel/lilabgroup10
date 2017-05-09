@@ -26,7 +26,7 @@ default (
 
   %breathing_intensity{0.99};  [1:Inf]
   breathing_intensity{0.99};  [1:60]
-  breathing_intensity{0.40};  [61:200]
+  breathing_intensity{0.40};  [61:300]
   starting_dir{1 in};         [1]
 
   % beliefs
