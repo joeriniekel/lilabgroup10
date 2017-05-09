@@ -12,13 +12,13 @@
 default (
 
   sitfac{0};              [1:30]
-  sitfac{90};             [31:90]
+  sitfac{00};             [31:90]
   sitfac{0};              [91:150]
-  sitfac{80};             [151:300]
+  sitfac{00};             [151:300]
 
   anxiety{0};             [1]
   hr{100};                [1]
-  physical_state{1.1};   	[1:Inf]
+  ps{1.1};   	            [1:Inf]
   breathing_f{0.1};       [1]
   used_chest_range{20};   [1]
   chest_c{65};            [1]
@@ -31,10 +31,15 @@ default (
 
   % beliefs
     belief{chest_c{10}};        [1]
-    belief{chest_pos{2 rest}};  [1]
-    %belief{chest_change{true}};  [1]
+    belief{starting_dir{1 in}}; [1]
+    belief{hr{70}};             [1]
+    belief{anxiety{0}};         [1]
+
+  %  belief{chest_pos{2 rest}};  [1]
+  % %belief{chest_change{true}};  [1]
       %needs to be defined because (t+2) is used
     belief{breathing_f{10}};    [1]
+
 
   graph_breathing_f_error{0};   [1:Inf]
 
