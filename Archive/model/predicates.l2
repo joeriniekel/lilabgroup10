@@ -17,7 +17,7 @@ anxiety_regulation;   REAL
 sitfac;               REAL
 hr;                   REAL
 breathing_f;          REAL
-ps;       						REAL
+physical_state;       REAL
 performance;          REAL
 breathing_intensity;  REAL
 used_chest_range;     REAL
@@ -27,10 +27,9 @@ prev_phase_shift;     REAL
 starting_dir;         {POS}
 
 % ANALYSIS MODEL
-original_hr;					REAL
-chest_pos;            {POS}
-chest_change;         BOOLEAN
-breathing_acc;	      REAL
+chest_pos;             {POS}
+chest_change;          BOOLEAN
+breathing_acc;	       REAL
 	%acceleration of the breathing f
 	%(thus the amount the breathing f increases)
 breathing_pattern;  {PATTERN}
@@ -41,15 +40,10 @@ breathing_pattern;  {PATTERN}
 
 
 % Graphs
-graph_bel_starting_dir;				{POS}
-graph_bel_breathing_f;        REAL
-graph_breathing_f_error;      REAL
-graph_bel_prev_ps;						REAL
-graph_original_hr;						REAL
-
-
 graph_bel_chest_pos;          {POS}
 graph_bel_chest_change;       BOOLEAN
+graph_bel_breathing_f;        REAL
+graph_breathing_f_error;      REAL
 graph_bel_breathing_acc;      REAL
 graph_bel_breathing_pattern;  {PATTERN}
 

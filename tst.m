@@ -20,6 +20,13 @@ plot(t,sin(t*f));grid on;
 t_10_f_1_2 = sin(10*f)
 %now the value of x seems to have skipped several time steps
 
-
-
 %sin(2*pi* f * dt + phi)
+
+
+%plots:
+t = 0:0.001:1;
+%sinus curve
+plot(t,sin(t*0.5*pi))
+%inverse sinus
+plot(t,asin(t)/pi * 2)
+
