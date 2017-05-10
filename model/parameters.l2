@@ -47,6 +47,8 @@ default (
 
   chest_c_margin;     0.005
   breathing_dir_mode; 1
+  d_hr_decay;         0.7
+  d_bf_decay;         0.7
 
   %breathing f
   n_breathing_cycles; 3;

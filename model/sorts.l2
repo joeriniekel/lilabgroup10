@@ -10,7 +10,7 @@ POS;                {1 in, 2 rest, 3 out}
 % beliefs etc
 
 OBSERVE;            {<chest_c>,<hr>}
-BELIEF;             {<chest_c>,<hr>,<starting_dir>,<ps>,<anxiety>,<breathing_f>,<original_hr>}
+BELIEF;             {<chest_c>,<hr>,<starting_dir>,<ps>,<anxiety>,<breathing_f>,<d_hr>,<d_bf>,<original_hr>}
 DESIRE;             {<chest_c>,<chest_pos>,<breathing_f>}
 PREDICT;            {<erl>}
 ASSUME;             {<erl>}

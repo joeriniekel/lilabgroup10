@@ -57,10 +57,10 @@ function result = breathing_f( model, trace, parameters, t )
   anxiety = trace(t+1).anxiety.arg{1};
   h       = model.parameters.default.hr_breathing;
   h2      = model.parameters.default.hr_breathing_exp;
-  a       = model.parameters.default.anxiety_bf;
+  a2      = model.parameters.default.anxiety_bf;
 
   hr = hr_bpm / 60;
-  breathing_f = h * hr + a * anxiety;
+  breathing_f = h * hr + a2 * anxiety;
   result = {t+1, 'breathing_f', breathing_f};
 end
 
@@ -214,25 +214,24 @@ end
 % ---------------------------------------------------------------
 
 
+function result = obs_hr( model, trace, parameters, t )
+  hr = trace(t+1).hr.arg{1};
+  result = {t+1, 'observe', predicate('hr',hr)};
+end
 
 function result = obs_chest_c( model, trace, parameters, t )
   chest_c = trace(t+1).chest_c.arg{1};
   result = {t+1, 'observe', predicate('chest_c',chest_c)};
 end
 
-function result = obs_hr( model, trace, parameters, t )
-  hr = trace(t+1).hr.arg{1};
-  result = {t+1, 'observe', predicate('hr',hr)};
+function result = bel_hr( model, trace, parameters, t )
+  hr = l2.getall(trace, t+1, 'observe', predicate('hr', NaN)).arg{1}.arg{1};
+  result = {t+1, 'belief', predicate('hr',hr)};
 end
 
 function result = bel_chest_c( model, trace, parameters, t )
   chest_c = l2.getall(trace, t+1, 'observe', predicate('chest_c', NaN)).arg{1}.arg{1};
   result = {t+1, 'belief', predicate('chest_c',chest_c)};
-end
-
-function result = bel_hr( model, trace, parameters, t )
-  hr = l2.getall(trace, t+1, 'observe', predicate('hr', NaN)).arg{1}.arg{1};
-  result = {t+1, 'belief', predicate('hr',hr)};
 end
 
 function result = bel_starting_dir( model, trace, parameters, t )
@@ -247,11 +246,6 @@ function result = bel_starting_dir( model, trace, parameters, t )
   	chest_dir = '2 rest';
   end
   result = {t+1, 'belief', predicate('starting_dir',{chest_dir})};
-end
-
-function result = graph_bel_starting_dir( model, trace, parameters, t )
-  chest_pos = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
-  result = {t+1, 'graph_bel_starting_dir', {chest_pos}};
 end
 
 function result = bel_breathing_f( model, trace, parameters, t )
@@ -310,19 +304,11 @@ function result = bel_breathing_f( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('breathing_f', breathing_f)};
 end
 
-function result = graph_bel_breathing_f( model, trace, parameters, t )
-  bf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  result = {t+1, 'graph_bel_breathing_f', bf};
-end
-function result = graph_breathing_f_error( model, trace, parameters, t )
-  bf  = l2.getall(trace, t+1, 'breathing_f', NaN).arg{1};
-  bbf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  result = {t+1, 'graph_breathing_f_error', bbf-bf};
-end
+
 
 function result = bel_prev_ps( model, trace, parameters, t )
-  % prev_anxiety = l2.getall(trace, t, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
-  prev_anxiety = 0;
+  prev_anxiety = l2.getall(trace, t, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
+  % prev_anxiety = 0;
   prev_hr      = l2.getall(trace, t, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   % prev_hr of hr?
   dt      = model.parameters.default.dt;
@@ -339,11 +325,6 @@ function result = bel_prev_ps( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('ps', ps)};
 end
 
-function result = graph_bel_prev_ps( model, trace, parameters, t )
-  ps = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
-  result = {t+1, 'graph_bel_prev_ps', ps};
-end
-
 function result = bel_original_hr( model, trace, parameters, t )
   %the value of the heart rate without the influence from anxiety
   prev_ps  = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
@@ -354,9 +335,56 @@ function result = bel_original_hr( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('original_hr', hr)};
 end
 
-function result = graph_original_hr( model, trace, parameters, t )
-  h = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
-  result = {t+1, 'graph_original_hr', h};
+function result = bel_d_hr( model, trace, parameters, t )
+  prev_d  = l2.getall(trace, t, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
+  prev_hr = l2.getall(trace, t, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+  hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+  % laat verschil van t-1 ook meetellen: een stijging kan over meerdere tijdstappen plaatsvinden
+  decay   = model.parameters.default.d_hr_decay;
+  d = hr - prev_hr + prev_d * decay;
+  result = {t+1, 'belief', predicate('d_hr', d)};
+end
+
+function result = bel_d_bf( model, trace, parameters, t )
+  prev_d  = l2.getall(trace, t, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
+  prev_bf = l2.getall(trace, t, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  bf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+
+  decay   = model.parameters.default.d_hr_decay;
+  d = bf - prev_bf + prev_d * decay;
+  result = {t+1, 'belief', predicate('d_bf', d)};
+end
+
+function result = bel_anxiety( model, trace, parameters, t )
+  bf  = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  hr  = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+  original_hr  = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
+  a_hr         = model.parameters.default.anxiety_hr;
+
+  d_bf  = l2.getall(trace, t+1, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
+  d_hr  = l2.getall(trace, t+1, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
+
+
+
+
+  if original_hr < hr
+    anxiety = (hr - original_hr) / a_hr;
+  else
+    anxiety = 0;
+  end
+
+  result = {t+1, 'belief', predicate('anxiety', hr)};
+end
+
+function result = assessment( model, trace, parameters, t )
+  anxiety = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
+  floor = 10;
+  if anxiety > 10
+    assessment = true;
+  else
+    assessment = false;
+  end
+  result = {t+1, 'assessment', assessment};
 end
 
 % function result = bel_breathing_acc( model, trace, parameters, t )
@@ -427,3 +455,46 @@ end
 %   p = l2.getall(trace, t+1, 'belief', predicate('breathing_pattern', {NaN})).arg{1}.arg{1};
 %   result = {t+1, 'graph_bel_breathing_pattern', {p}};
 % end
+
+
+
+
+
+
+% Breathing_f and heart rate
+function result = graph_bel_breathing_f( model, trace, parameters, t )
+  bf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_bel_breathing_f', bf};
+end
+function result = graph_breathing_f_error( model, trace, parameters, t )
+  bf  = l2.getall(trace, t+1, 'breathing_f', NaN).arg{1};
+  bbf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_breathing_f_error', bbf-bf};
+end
+function result = graph_d_hr( model, trace, parameters, t )
+  x = l2.getall(trace, t+1, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_d_hr', x};
+end
+function result = graph_d_bf( model, trace, parameters, t )
+  x = l2.getall(trace, t+1, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_d_bf', x};
+end
+
+% Starting direction, physical state, original_hr, anxiety
+
+function result = graph_bel_starting_dir( model, trace, parameters, t )
+  chest_pos = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_bel_starting_dir', {chest_pos}};
+end
+function result = graph_bel_prev_ps( model, trace, parameters, t )
+  ps = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_bel_prev_ps', ps};
+end
+function result = graph_original_hr( model, trace, parameters, t )
+  h = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_original_hr', h};
+end
+function result = graph_bel_anxiety( model, trace, parameters, t )
+  h = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_bel_anxiety', h};
+end

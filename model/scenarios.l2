@@ -33,6 +33,8 @@ default (
     belief{chest_c{10}};        [1]
     belief{starting_dir{1 in}}; [1]
     belief{hr{70}};             [1]
+    belief{d_hr{0}};            [1]
+    belief{d_bf{0}};            [1]
     belief{anxiety{0}};         [1]
 
   %  belief{chest_pos{2 rest}};  [1]

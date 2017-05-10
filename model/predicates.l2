@@ -28,6 +28,11 @@ starting_dir;         {POS}
 
 % ANALYSIS MODEL
 original_hr;					REAL
+d_hr;									REAL
+d_bf;									REAL
+assessment;						BOOLEAN
+
+
 chest_pos;            {POS}
 chest_change;         BOOLEAN
 breathing_acc;	      REAL
@@ -41,11 +46,14 @@ breathing_pattern;  {PATTERN}
 
 
 % Graphs
-graph_bel_starting_dir;				{POS}
-graph_bel_breathing_f;        REAL
-graph_breathing_f_error;      REAL
-graph_bel_prev_ps;						REAL
-graph_original_hr;						REAL
+graph_bel_starting_dir;		{POS}
+graph_bel_breathing_f;    REAL
+graph_breathing_f_error;  REAL
+graph_d_hr;								REAL
+graph_d_bf;								REAL
+graph_bel_prev_ps;				REAL
+graph_original_hr;				REAL
+graph_bel_anxiety;				REAL
 
 
 graph_bel_chest_pos;          {POS}
