@@ -24,18 +24,19 @@ default (
     %when dt is changed, f and hr will also be affected
   bhr;                90
   lhr;                50
-  hr_var;             0.5
   max_chest_c;        80
   min_chest_c;        60
   max_chest_range;    20
   disfac;             1.5
-  disfac_on_reg;      0.5
+  disfac_reg;         0.5
+  disfac_hr_var;      0.1
 
   %factors for the strength of relations between concepts
   anxiety_decay;      0.05
   sitfac_anxiety;     0.8
-  anxiety_hr;         0.5
   anxiety_bf;         0.5
+  anxiety_hr;         0.1
+  anxiety_hr_var;     0.5
   hr_breathing;       0.08
     %0.08
   hr_breathing_exp;   1.0

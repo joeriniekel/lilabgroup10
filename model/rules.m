@@ -18,7 +18,7 @@ end
 
 function result = anxiety_regulation( model, trace, parameters, t )
   breathing_f = trace(t).breathing_f.arg{1};
-  disfac = model.parameters.default.disfac_on_reg;
+  disfac = model.parameters.default.disfac_reg;
   b = model.parameters.default.breathing_anxiety;
 
   anxiety_regulation = disfac + b * breathing_f;  % (breathing_f - base_lvl)
@@ -34,24 +34,37 @@ function result = anxiety( model, trace, parameters, t )
   s             = model.parameters.default.sitfac_anxiety;
 
   sitfac        = trace(t+1).sitfac;
-  t
-  prev_anxiety
-  sitfac
+
   sitfac = 0;
+
+
   new_anxiety = (s * sitfac + prev_anxiety * decay) * (1 - regulation);
   result = {t+1, 'anxiety', new_anxiety};
 end
 
+function result = hr_var( model, trace, parameters, t )
+  d   = model.parameters.default.disfac_hr_var;
+  dt  = model.parameters.default.dt;
+  anxiety  = trace(t+1).anxiety.arg{1};
+  a        = model.parameters.default.anxiety_hr_var;
+  % hr_var = the amount of bpm that will be 'added'
+  % this is multiplied by dt
+  % e.g. +1 bpm, in 'timescale' t = 0.5t  ->  +0.5bpm
+  hr_var = (d * rand + a * anxiety * rand) * dt;
+  result = {t+1, 'hr_var', hr_var};
+end
+
 function result = hr( model, trace, parameters, t )
   ps       = trace(t).ps.arg{1}; % t+1 doesn't work with this syntax + scenario values
+  var      = trace(t+1).hr_var.arg{1};
   anxiety  = trace(t+1).anxiety.arg{1};
   dt       = model.parameters.default.dt;
   a        = model.parameters.default.anxiety_hr;
-  variance = model.parameters.default.hr_var;
+  % variance = model.parameters.default.hr_var;
   bhr      = dt * model.parameters.default.bhr; %todo kan dit?
   lhr      = dt * model.parameters.default.lhr;
 
-  hr_new = (bhr * ps) + (a * anxiety) + (variance * rand);
+  hr_new = (bhr * ps) + (a * anxiety) + var;
   if hr_new < lhr, hr_new = lhr; disp('lhr reached!'); end;
   result = {t+1, 'hr', hr_new};
 end
@@ -151,9 +164,10 @@ function result = chest_c( model, trace, parameters, t )
   min         = model.parameters.default.min_chest_c;
   max         = model.parameters.default.max_chest_c;
   avg_chest_c = min + ((max - min) / 2); % 80
-  % f = dt * f;
+  % f = dt * f; % breathing_f is already inheritably adapted to dt,
+                % but if dt is changed during simulation, it could produce weird behaviour.
   A = range / 2;
-  % phi = phi * -1;
+  % y(t) = A sin(2 pi f t + phi)
   curr_chest_c = A * sin(2*pi* f * dt + phi) + avg_chest_c;
 
   %oude fallback
