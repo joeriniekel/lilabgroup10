@@ -32,7 +32,6 @@
 default (
 
   dt;                 1
-    %when dt is changed, f and hr will also be affected
   bhr;                90
   lhr;                50
   max_chest_c;        80
@@ -44,11 +43,11 @@ default (
   disfac_hr_var;      0.1
 
   %factors for the strength of relations between concepts
-  anxiety_decay;      0.05
+  anxiety_decay;      0.5
   sitfac_anxiety;     1.0
-  anxiety_bf;         0.02
+  anxiety_bf;         0.01
   anxiety_hr;         0.001
-  anxiety_hr_var;     0.5
+  anxiety_hr_var;     0.1
   hr_breathing;       0.08
     %0.08
   hr_breathing_exp;   1.0
@@ -60,12 +59,12 @@ default (
 
   chest_c_margin;     0.005
   breathing_dir_mode; 1
-  d_hr_decay;         0.7
-  d_bf_decay;         0.7
+  d_hr_decay;         0
+  d_bf_decay;         0
 
   %breathing f
   n_breathing_cycles; 3;
-  max_interval_t;     10000;
+  max_interval_t;     120;
   acc_interval;       5
   acc_margin;         0.01
   pattern_interval;   10

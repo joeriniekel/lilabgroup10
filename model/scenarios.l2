@@ -1,25 +1,31 @@
+% Note that scenarios are independent from 'real' simulated time (dt)
+
 % hr              hr  in bpm
 % breathing f     f   in Hz (sˆ-1)
-% physical_state  factor for increase in hr
+% physical_state  ps  factor for increase in hr
 
 %sitfac{10};             [10:100]
   %bij [5:Inf] geeft hij alsnog een dubbele lijn
 
-% breathing_intensity   higher intensity means that subject is breathing 'fully'
+% breathing_intensity   higher intensity means that subject is breathing deeper
 
 
 
 default (
-
-  sitfac{01};             [1:10]
-  sitfac{10};             [11:30]
-  sitfac{50};             [31:90]
+  % start with increase in ps
+  % later, increase the situational factors
+  sitfac{01};             [1:30]
+  sitfac{10};             [31:40]
+  sitfac{50};             [41:90]
   sitfac{90};             [91:150]
   sitfac{50};             [151:300]
 
+  ps{01};   	            [1:10]
+  ps{5};   	              [11:30]
+  ps{01};   	            [31:300]
+
   anxiety{0};             [1]
-  hr{100};                [1]
-  ps{1.1};   	            [1:Inf]
+  hr{90};                 [1]
   breathing_f{0.1};       [1]
   used_chest_range{20};   [1]
   chest_c{65};            [1]
@@ -27,7 +33,7 @@ default (
 
   %breathing_intensity{0.99};  [1:Inf]
   breathing_intensity{0.99};  [1:60]
-  breathing_intensity{0.40};  [61:300]
+  breathing_intensity{0.99};  [61:300]
   starting_dir{1 in};         [1]
 
   % beliefs
@@ -45,6 +51,9 @@ default (
 
 
   graph_breathing_f_error{0};   [1:Inf]
+    %the zero-line
+  graph_breathing_f_error{-0.1};   [1:10]
+    %the analysis model works after about 10/dt timesteps
 
   %v2{10};                 [1:Inf]
   %lightvalue{rtinput_lightsensor}; [1:Inf]
