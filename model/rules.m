@@ -12,7 +12,7 @@ end
 
 % ---------------------------------------------------------------
 %
-%   DOMAIN
+%     DOMAIN
 %
 % ---------------------------------------------------------------
 
@@ -23,9 +23,8 @@ function result = anxiety_regulation( model, trace, parameters, t )
   breathing_f = trace(t).breathing_f.arg{1};
   disfac      = model.parameters.default.disfac_a_reg;
   b           = model.parameters.default.breathing_anxiety;
-  dt          = model.parameters.default.dt;
   % lo_bf = alwas zero
-  hi_bf       = dt * model.parameters.default.high_bf;
+  hi_bf       = model.parameters.default.high_bf;
   relative_bf = breathing_f / hi_bf;
   anxiety_reg = disfac - b * relative_bf;
   if anxiety_reg <= 0, anxiety_reg = 0; disp('lowest anxiety regulation reached');  end;
@@ -50,28 +49,27 @@ function result = anxiety( model, trace, parameters, t )
 end
 
 function result = hr_var( model, trace, parameters, t )
-  % hr_var = the amount of bpm that will be 'added'
-  % this is multiplied by dt
-  % e.g. +1 bpm, in 'timescale' t = 0.5t  ->  +0.5bpm
-  d   = model.parameters.default.disfac_hr_var;
-  dt  = model.parameters.default.dt;
+  % hr_var = the amount of bpm that will be 'added' or 'subtracted'
   anxiety  = trace(t+1).anxiety.arg{1};
+  d        = model.parameters.default.disfac_hr_var;
   a        = model.parameters.default.anxiety_hr_var;
-  hr_var = (d * rand + a * anxiety * rand) * dt;
+  % influence from ps..... = 0
+
+  hr_var = d * rand + a * anxiety * rand;
   result = {t+1, 'hr_var', hr_var};
 end
 
 function result = hr( model, trace, parameters, t )
   % in bpm, between 0 and 180
+  % output = hr * dt
   ps      = trace(t).ps.arg{1}; % t+1 doesn't work with this syntax + scenario values
   var     = trace(t+1).hr_var.arg{1};
   anxiety = trace(t+1).anxiety.arg{1};
-  dt      = model.parameters.default.dt;
   a       = model.parameters.default.anxiety_hr;
-  bhr     = dt * model.parameters.default.bhr; %todo kan dit?
-  lhr     = dt * model.parameters.default.lhr;
+  bhr     = model.parameters.default.bhr;
+  lhr     = model.parameters.default.lhr;
 
-  hr_new = (bhr * ps) + (a * anxiety) + var;
+  hr_new = (bhr + ps) + (a * anxiety) + var;
   if hr_new < lhr, hr_new = lhr; disp('lhr reached!'); end;
   result = {t+1, 'hr', hr_new};
 end
@@ -83,11 +81,9 @@ function result = breathing_f( model, trace, parameters, t )
   h       = model.parameters.default.hr_breathing;
   h2      = model.parameters.default.hr_breathing_exp;
   a2      = model.parameters.default.anxiety_bf;
-  dt      = model.parameters.default.dt;
 
-
-  hr = hr_bpm / 60;
-  breathing_f = h * hr + (a2 * anxiety * dt);
+  hr = hr_bpm / 60; % in s-1
+  breathing_f = h * hr + (a2 * anxiety);
   result = {t+1, 'breathing_f', breathing_f};
 end
 
@@ -179,7 +175,7 @@ function result = chest_c( model, trace, parameters, t )
   % f = dt * f; % breathing_f is already inheritably adapted to dt,
                 % but if dt is changed during simulation, it could produce weird behaviour.
   A = range / 2;
-  % y(t) = A sin(2 pi f t + phi)
+  % y(t) = A sin(2 pi f t dt + phi)
   curr_chest_c = A * sin(2*pi* f * dt + phi) + avg_chest_c;
   %oude fallback
   % margin = 0.2;
@@ -212,7 +208,8 @@ function result = starting_dir( model, trace, parameters, t )
   x1 = sin(2*pi*f*dt* t1 + phi);
   x2 = sin(2*pi*f*dt* t2 + phi);
 
-  if x1 < x2, curr_dir2 = '1 in';
+  if x1 < x2
+    curr_dir2 = '1 in';
   else
     curr_dir2 = '3 out';
   end
@@ -221,27 +218,30 @@ function result = starting_dir( model, trace, parameters, t )
 end
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-% ---------------------------------------------------------------
 %
-%   ANALYSIS
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
 %
 % ---------------------------------------------------------------
-
+%
+%     ANALYSIS
+%
+% ---------------------------------------------------------------
+%
+%
+%
+%
 
 function result = obs_hr( model, trace, parameters, t )
   hr = trace(t+1).hr.arg{1};
@@ -285,7 +285,7 @@ function result = bel_breathing_f( model, trace, parameters, t )
   max      = model.parameters.default.max_interval_t;
   dt       = model.parameters.default.dt;
   mode     = model.parameters.default.breathing_dir_mode;
-  max = max / dt;
+  max = max / dt;   % t=1,60x     t=0.1,600x
   v = [];
   a = t;
   prev_val = '';
@@ -327,7 +327,7 @@ function result = bel_breathing_f( model, trace, parameters, t )
 
       interval = t_end - t_start;
       n = sum(v);    %can be less than the original
-      breathing_f = n / interval;
+      breathing_f = n / interval * dt;
     end
   end
   result = {t+1, 'belief', predicate('breathing_f', breathing_f)};
@@ -339,6 +339,7 @@ function result = bel_d_hr( model, trace, parameters, t )
   hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   % laat verschil van t-1 ook meetellen: een stijging kan over meerdere tijdstappen plaatsvinden
   decay   = model.parameters.default.d_hr_decay;
+
   d = hr - prev_hr + prev_d * decay;
   result = {t+1, 'belief', predicate('d_hr', d)};
 end
@@ -346,57 +347,58 @@ end
 function result = bel_d_bf( model, trace, parameters, t )
   prev_d  = l2.getall(trace, t, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
   prev_bf = l2.getall(trace, t, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  bf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-
+  bf      = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   decay   = model.parameters.default.d_hr_decay;
+
   d = bf - prev_bf + prev_d * decay;
   result = {t+1, 'belief', predicate('d_bf', d)};
 end
 
 function result = bel_anxiety( model, trace, parameters, t )
   prev_anxiety = l2.getall(trace, t, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
-  bf  = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  hr  = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+  bf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  hr = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   d_bf = l2.getall(trace, t+1, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
   d_hr = l2.getall(trace, t+1, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
   decay     = model.parameters.default.anxiety_decay;
-  floor_hr  = 0;
-  floor_bf  = 0;
-
+  floor_hr  = 15;
+  floor_bf  = 0.05;
   if d_hr > floor_hr
     % if hr is raised (by the physical state) anxiety cannot determined
     % thus it will stay at the same level
     anxiety = prev_anxiety;
+    disp('c1')
   elseif d_bf > floor_bf
+    disp('c2')
     anxiety = 10 * d_bf + prev_anxiety * decay;
   else
+    % disp('c3')
     anxiety = prev_anxiety * decay;
   end
-
-  result = {t+1, 'belief', predicate('anxiety', hr)};
+  % prev_anxiety
+  % anxiety
+  % anxiety = 0;
+  result = {t+1, 'belief', predicate('anxiety', anxiety)};
 end
 
 function result = bel_prev_ps( model, trace, parameters, t )
   anxiety = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
   hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-  % dt      = model.parameters.default.dt; %?
   a       = model.parameters.default.anxiety_hr;
-  bhr     = model.parameters.default.bhr; %todo kan dit?
-  % lhr     = dt * model.parameters.default.lhr;
+  bhr     = model.parameters.default.bhr;
   % omschrijven: voor in appendix
   % hr = (bhr * ps) + (a * anxiety);
   % hr = (bhr * ps) + (a * anxiety)
   % hr - a * anxiety = bhr * ps
   % ps = (hr - a * anxiety) / bhr
-  ps = (hr - a * anxiety) / bhr;  % + param: deviation of ps? todo
+  ps = (hr - a * anxiety) / bhr;  % optional: + param: deviation of ps?
   result = {t+1, 'belief', predicate('ps', ps)};
 end
 
 function result = bel_original_hr( model, trace, parameters, t )
   %the value of the heart rate without the influence from anxiety
   ps  = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
-  dt  = model.parameters.default.dt;
-  bhr = dt * model.parameters.default.bhr; %todo kan dit(2)?
+  bhr = model.parameters.default.bhr; %todo kan dit(2)?
   % hr = (bhr * ps) + (a * anxiety)
   hr = bhr * ps;
   result = {t+1, 'belief', predicate('original_hr', hr)};
@@ -489,6 +491,7 @@ end
 
 
 % Breathing_f and heart rate
+
 function result = graph_bel_breathing_f( model, trace, parameters, t )
   bf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_bel_breathing_f', bf};
@@ -513,6 +516,10 @@ function result = graph_bel_starting_dir( model, trace, parameters, t )
   chest_pos = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_bel_starting_dir', {chest_pos}};
 end
+function result = graph_bel_anxiety( model, trace, parameters, t )
+  h = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_bel_anxiety', h};
+end
 function result = graph_bel_prev_ps( model, trace, parameters, t )
   ps = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_bel_prev_ps', ps};
@@ -520,8 +527,4 @@ end
 function result = graph_original_hr( model, trace, parameters, t )
   h = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_original_hr', h};
-end
-function result = graph_bel_anxiety( model, trace, parameters, t )
-  h = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
-  result = {t+1, 'graph_bel_anxiety', h};
 end

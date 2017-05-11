@@ -47,6 +47,7 @@ breathing_pattern;  {PATTERN}
 
 
 % Graphs
+graph_hr;									REAL
 graph_bel_starting_dir;		{POS}
 graph_bel_breathing_f;    REAL
 graph_breathing_f_error;  REAL
