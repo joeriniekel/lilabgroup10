@@ -29,7 +29,7 @@ default (
   min_chest_c;        60
   max_chest_range;    20
   disfac;             1.5
-  disfac_on_regulation; 0.5
+  disfac_on_reg;      0.5
 
   %factors for the strength of relations between concepts
   anxiety_decay;      0.05

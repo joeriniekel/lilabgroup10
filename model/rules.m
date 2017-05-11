@@ -18,10 +18,10 @@ end
 
 function result = anxiety_regulation( model, trace, parameters, t )
   breathing_f = trace(t).breathing_f.arg{1};
-  disfac = model.parameters.default.disfac_on_regulation;
+  disfac = model.parameters.default.disfac_on_reg;
   b = model.parameters.default.breathing_anxiety;
 
-  anxiety_regulation = disfac + b * (1 - breathing_f);
+  anxiety_regulation = disfac + b * breathing_f;  % (breathing_f - base_lvl)
   result = {t+1, 'anxiety_regulation', anxiety_regulation};
 end
 
