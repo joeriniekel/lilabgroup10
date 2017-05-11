@@ -9,7 +9,7 @@ f = 0.21;
 dt = 0.5;
 
 %plotting the breathing f
-t = 0:0.01:10;
+t = 0:0.001:10;
 f = 1.3;
 plot(t,sin(t*f));grid on;
 %the value of x(9) = sin(9*f)

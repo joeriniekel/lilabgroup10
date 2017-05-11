@@ -16,6 +16,7 @@ anxiety;              REAL
 anxiety_regulation;   REAL
 sitfac;               REAL
 hr;                   REAL
+hr_var;								REAL
 breathing_f;          REAL
 ps;       						REAL
 performance;          REAL
