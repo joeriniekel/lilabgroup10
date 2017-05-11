@@ -1,22 +1,33 @@
-%domain model
-  % dt          = the amount of seconds simulated per time step
-      %0.1 is realistic
-      %1.0 results in faster rendering
-  % bhr         = basic heart rate in bpm
-  % lhr         = lowest possible hr, safety limit
-  % max_chest_c = max_chest_circumfence in cm
-  % margin      = the sensitivity used to determine a change in chest position in cm
-%analysis model
-  % breathing_dir_mode  = option to let (believed) breathing cycles start at '1 in' or '3 out'
-                        %the value can be 1 or 3
-  %breathing frequency
-  % n_breathing_cycles  = number of complete breathing cycles
-  % max_interval_t      = in s, dependent of dt
-  %breathing f acceleration
-  % acc_interval        = number of timeframes used to search for accelerations
-  % acc_margin          = sensitivity of search
-  %breathing f pattern
-  % pattern_interval    = number of timeframes used to search for accelerations
+% parameter tuning...
+% DOMAIN MODEL
+% dt                [0;1]
+%   the amount of seconds simulated per time step
+%     0.1 is realistic
+%     1.0 results in faster rendering
+% bhr               basic heart rate in bpm
+% lhr               lowest possible hr, (safety limit)
+% max_chest_c       max chest circumfence in cm
+% min_chest_c       max chest circumfence in cm
+% max_chest_range   = max_chest_c - min_chest_c
+%   the actual chest range
+% high_bf           [0;10]
+%   a value for a breathing frequency that is considered extremely high
+% disfac            [0;10]    trait for anxiety
+% disfac_a_reg      [0;1]    trait for anxiety regulation
+% disfac_hr_var     [-20;20]  trait for hr variability
+% ...
+
+% ANALYSIS MODEL
+% breathing_dir_mode  = option to let (believed) breathing cycles start at '1 in' or '3 out'
+%                        the value can be 1 or 3
+% breathing frequency
+%  n_breathing_cycles  = number of complete breathing cycles
+%  max_interval_t      = in s, dependent of dt
+% breathing f acceleration
+%  acc_interval        = number of timeframes used to search for accelerations
+%  acc_margin          = sensitivity of search
+% breathing f pattern
+%  pattern_interval    = number of timeframes used to search for accelerations
 
 default (
 
@@ -27,20 +38,21 @@ default (
   max_chest_c;        80
   min_chest_c;        60
   max_chest_range;    20
-  disfac;             1.5
-  disfac_reg;         0.5
+  high_bf;            4
+  disfac;             1
+  disfac_a_reg;       0.9
   disfac_hr_var;      0.1
 
   %factors for the strength of relations between concepts
   anxiety_decay;      0.05
-  sitfac_anxiety;     0.8
-  anxiety_bf;         0.5
-  anxiety_hr;         0.1
+  sitfac_anxiety;     1.0
+  anxiety_bf;         0.02
+  anxiety_hr;         0.001
   anxiety_hr_var;     0.5
   hr_breathing;       0.08
     %0.08
   hr_breathing_exp;   1.0
-  breathing_anxiety;  0.5
+  breathing_anxiety;  1.0
 
 
 
