@@ -11,10 +11,10 @@
 
 default (
 
-  sitfac{0};              [1:30]
-  sitfac{00};             [31:90]
-  sitfac{0};              [91:150]
-  sitfac{00};             [151:300]
+  sitfac{10};              [1:30]
+  sitfac{50};             [31:90]
+  sitfac{10};              [91:150]
+  sitfac{80};             [151:Inf]
 
   anxiety{0};             [1]
   hr{100};                [1]

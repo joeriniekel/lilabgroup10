@@ -22,19 +22,23 @@ function result = anxiety_regulation( model, trace, parameters, t )
   b = model.parameters.default.breathing_anxiety;
 
   anxiety_regulation = disfac + b * (1 - breathing_f);
-
   result = {t+1, 'anxiety_regulation', anxiety_regulation};
 end
 
 function result = anxiety( model, trace, parameters, t )
   prev_anxiety  = trace(t).anxiety.arg{1};
-  sitfac        = trace(t).sitfac.arg{1}; %gives errors (t+1 of t)
+  % sitfac        = trace(t).sitfac.arg{1}; %gives errors (t+1 of t)
   regulation    = trace(t+1).anxiety_regulation.arg{1};
   decay         = model.parameters.default.anxiety_decay;
   disfac        = model.parameters.default.disfac;
   s             = model.parameters.default.sitfac_anxiety;
 
-  new_anxiety = (s * sitfac + prev_anxiety * decay) * regulation;
+  sitfac        = trace(t+1).sitfac;
+  t
+  prev_anxiety
+  sitfac
+  sitfac = 0;
+  new_anxiety = (s * sitfac + prev_anxiety * decay) * (1 - regulation);
   result = {t+1, 'anxiety', new_anxiety};
 end
 
