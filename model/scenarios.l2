@@ -15,7 +15,7 @@ default (
   % start with increase in ps
   % later, increase the situational factors
   sitfac{01};             [1:30]
-  sitfac{10};             [31:40]
+  sitfac{90};             [31:40]
   sitfac{50};             [41:90]
   sitfac{90};             [91:150]
   sitfac{50};             [151:300]
