@@ -52,7 +52,7 @@ default (
 
   graph_breathing_f_error{0};   [1:Inf]
     %the zero-line
-  graph_breathing_f_error{-0.1};   [1:10]
+  %graph_breathing_f_error{-0.1};   [1:10]
     %the analysis model works after about 10/dt timesteps
 
   %v2{10};                 [1:Inf]

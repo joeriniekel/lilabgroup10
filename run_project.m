@@ -4,7 +4,7 @@ clc
 disp('Running model...')
 model = l2('model');
 %model.simulate(5, 'COM3');
-model.simulate(180,'default','default');
+model.simulate(150,'default','default');
 disp('Simulation finished');
 %model.plot();
 

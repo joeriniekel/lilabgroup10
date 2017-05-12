@@ -38,7 +38,7 @@ default (
   min_chest_c;        60
   max_chest_range;    20
   high_bf;            4
-  disfac;             1
+  disfac;             0.8
   disfac_a_reg;       0.9
   disfac_hr_var;      0.1
 
@@ -55,9 +55,8 @@ default (
 
 
 
-  % analysis model
-
-  chest_c_margin;     0.005
+  % ANALYSIS MODEL
+  chest_c_margin;     0.05
   breathing_dir_mode; 1
   d_hr_decay;         0
   d_bf_decay;         0
