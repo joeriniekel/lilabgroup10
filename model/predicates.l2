@@ -57,6 +57,10 @@ graph_bel_prev_ps;				REAL
 graph_original_hr;				REAL
 graph_bel_anxiety;				REAL
 
+%support - desires
+graph_des_bf;							REAL
+graph_des_starting_dir;		REAL
+
 
 graph_bel_chest_pos;          {POS}
 graph_bel_chest_change;       BOOLEAN

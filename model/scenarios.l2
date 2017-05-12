@@ -44,6 +44,16 @@ default (
     belief{d_bf{0}};            [1]
     belief{anxiety{0}};         [1]
 
+    % beliefs used by support
+    belief{prev_phase_shift{0}};  [1]
+    belief{prev_relative_c{0}};   [1]
+    belief{breathing_f{0}};       [1]
+
+  % desires
+  desire{prev_phase_shift{0}};    [1]
+
+
+
   %  belief{chest_pos{2 rest}};  [1]
   % %belief{chest_change{true}};  [1]
       %needs to be defined because (t+2) is used

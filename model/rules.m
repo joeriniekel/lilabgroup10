@@ -104,7 +104,7 @@ function result = prev_relative_c( model, trace, parameters, t )
   A = range / 2;
 
   relative_c = (prev_chest_c - avg_chest_c) / A;
-    % value is in range [-1,1], except when the range changes during simulation
+    % value is in range [-1,1], except when the range changes between different points in time
   if      relative_c >  1, relative_c =  1;
   elseif  relative_c < -1, relative_c = -1;  end;
 
@@ -362,6 +362,72 @@ function result = bel_breathing_f( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('breathing_f', breathing_f)};
 end
 
+
+%new
+function result = bel_prev_relative_c( model, trace, parameters, t )
+  %the previous value of chest_c, relative to the used chest_range
+  chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+  min          = model.parameters.default.min_chest_c; % believed min
+  max          = model.parameters.default.max_chest_c; % believed max
+  range = max - min;
+  A = range / 2;
+  avg_chest_c = min + A;            % 70
+
+  relative_c = (chest_c - avg_chest_c) / A;
+    % value is in range [-1,1], except when the range changes between different points in time
+  if      relative_c >  1, relative_c =  1;
+  elseif  relative_c < -1, relative_c = -1;  end;
+
+  result = {t+1, 'belief', predicate('prev_relative_c',relative_c)};
+end
+%new
+
+%new
+function result = bel_prev_phase_shift( model, trace, parameters, t )
+  %phase_shift of chest_c-cycle on t-1,
+  % value will be used in (t-1) to calculate chest_c
+  % to calculate the phase, we need the new used_chest_range
+  prev_starting_dir = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  relative_c = l2.getall(trace, t+1, 'belief', predicate('prev_relative_c', NaN)).arg{1}.arg{1};
+  f = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  range = 1;  %assume that range is 1. if not, change min and max params?
+
+  % Formula for a basic sin wave: x(t) = A * sin(2*pi* f * t) + d;
+  % However, f can change during a cycle
+  % Adapt the formula so that f can be changed:
+  %   Let t = 1 and use +phi to shift the wave (with +phi in range[0,2pi])
+  %   phi has to be calculate manually because the range is also variable
+  %   (phi = asin( x(t)/prev_A) -2*pi*f*t) can not be used
+
+  % calculate the phase shift (phi)
+  %  2pi = full shift
+  %  1pi = half shift (inverted direction)
+  % .5pi = heighest point
+
+  % val = relative_c * 0.5 * pi;
+  % omschrijven: use asin to convert the [-1,1] to a 'sin-shape'
+  % want sin(t*0.5pi) is niet evenredig met t[0:1]
+  % val = asin(relative_c)/pi*2    * 0.5 * pi
+  val = asin(relative_c); %deze regel voorkomt vastlopen van de grafiek op relative_c = 1 of -1
+
+  if strcmp(prev_starting_dir, '1 in')
+    % phi = relative_c * 0.5 * pi;
+    phi = val;
+  else
+    %   % prev_starting_dir = '3 out'
+    % phi = relative_c * -0.5*pi + pi;
+    phi = val  * -1 + pi;
+    % eigenlijk:
+    % if relative_c > 0       % make pos relative_c negative
+    %   phi = val * -1 + pi;
+    % else                    % make negative relative_c positive
+    %   phi = val * -1 + pi;
+    % end
+  end
+  result = {t+1, 'belief', predicate('prev_phase_shift',phi)};
+end
+%new
+
 function result = bel_d_hr( model, trace, parameters, t )
   prev_d  = l2.getall(trace, t, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
   prev_hr = l2.getall(trace, t, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
@@ -541,6 +607,8 @@ end
 %
 %
 
+% original_hr -> desire breathing_f
+% belief phase shift + desire breathing_f -> desire starting direction
 
 function result = des_bf( model, trace, parameters, t )
   % desired breathing_f without influence from anxiety.
@@ -551,23 +619,62 @@ function result = des_bf( model, trace, parameters, t )
   result = {t+1, 'desire', predicate('breathing_f', breathing_f)};
 end
 
-function result = des_chest_c( model, trace, parameters, t )
-  % = predicted chest_c?
-  chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
-  starting_dir = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
-  bf = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  dt = model.parameters.default.dt;
+% function result = des_chest_c( model, trace, parameters, t )
+%   % prev starting dir gebruiken?
+%    % predicted chest_c?
+%   prev_chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+%   starting_dir = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+%   f = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
+%   phi = l2.getall(trace, t+1, 'desire', predicate('prev_phase_shift', NaN)).arg{1}.arg{1};
+%   dt = model.parameters.default.dt;
+%   min         = model.parameters.default.min_chest_c;
+%   max         = model.parameters.default.max_chest_c;
+%   range = max - min;
+%   A = range / 2;
+%   avg_chest_c  = min + A;  
 
-  %...
+%   % f = dt * f; % breathing_f is already inheritably adapted to dt,
+%                 % but if dt is changed during simulation, it could produce weird behaviour.
+%   A = range / 2;
+%   % y(t) = A sin(2 pi f t dt + phi)
+%   chest_c = A * sin(2*pi* f * dt + phi) + avg_chest_c;
+  
+%   result = {t+1, 'desire', predicate('chest_c', chest_c)};
+% end
 
-  result = {t+1, 'desire', predicate('chest_c', c)};
+
+
+% desire next_starting_dir
+% = feedback
+
+% andere current chest c gebruiken?
+
+function result = des_starting_dir( model, trace, parameters, t )
+  % in the domain model the starting_dir is calculated instead of observed
+  %
+  % calculate the direction of the breathing cycle on a point t
+  % this is done by comparing x(t) and x(t+dt)
+  % to be precise, dt has to be as small as possible (lim->0) thus a new value for dt will be used.
+  % (t-dt) and (t+dt) is more realistic, but this can prevent the cycle from completing in certain instance.
+  t1 = 1;
+  t2 = 1.0001;
+  f   = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  phi = l2.getall(trace, t+1, 'belief', predicate('prev_phase_shift', NaN)).arg{1}.arg{1};
+  dt  = model.parameters.default.dt;
+  % x1 = A * sin(2*pi* f * t1 + phi) + avg_chest_c;
+  % x2 = A * sin(2*pi* f * t2 + phi) + avg_chest_c;
+  % A, avg_chest_c can be disregarded
+  x1 = sin(2*pi*f*dt* t1 + phi);
+  x2 = sin(2*pi*f*dt* t2 + phi);
+
+  if x1 < x2
+    curr_dir2 = '1 in';
+  else
+    curr_dir2 = '3 out';
+  end
+
+  result = {t+1, 'desire', predicate('starting_dir', curr_dir2)};
 end
-
-% prev_relative_c?
-% used_chest_range?
-% phase_shift?
-
-
 
 
 
@@ -633,3 +740,25 @@ function result = graph_original_hr( model, trace, parameters, t )
   h = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_original_hr', h};
 end
+
+% Support model
+
+
+
+
+
+function result = graph_des_bf( model, trace, parameters, t )
+  x   = l2.getall(trace, t+1, 'desire', predicate('des_bf', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_des_bf', x};
+end
+
+function result = graph_des_starting_dir( model, trace, parameters, t )
+  x   = l2.getall(trace, t+1, 'desire', predicate('graph_des_starting_dir', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_des_starting_dir', x};
+end
+
+
+
+
+
+
