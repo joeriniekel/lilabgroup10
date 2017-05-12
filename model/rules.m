@@ -284,54 +284,166 @@ function result = bel_breathing_f( model, trace, parameters, t )
   n_cycles = model.parameters.default.n_breathing_cycles;
   max      = model.parameters.default.max_interval_t;
   dt       = model.parameters.default.dt;
-  mode     = model.parameters.default.breathing_dir_mode;
+  % mode     = model.parameters.default.breathing_dir_mode;
+
   max = max / dt;   % t=1,60x     t=0.1,600x
+  % v will be a vector/list containing 1s and 0s that indicate starting points of breathing cycles.
   v = [];
   a = t;
-  prev_val = '';
+  mode = 0;
+  count = 1;          % matlab starts counting at 1 instead of 0
+  prev_val = l2.getall(trace, a+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
 
-  if t <= n_cycles*2   % a minimum of n*2+1 time steps are required (in+out+...+next_in)
+  if t <= n_cycles*2  % a minimum of n*2+1 time steps are required (in+out+...+next_in)
     breathing_f = 0;
     disp('Waiting - collecting data')
-    if t==n_cycles*2, disp('  Go  -->'); end; %last wait
+    if t==n_cycles*2, disp('  Go  -->');disp('Searching for breathing cycles...');end; %last wait
   else
-    while sum(v) <= n_cycles + 1      % the last interval will be cut off
-      val = l2.getall(trace, a+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
-      count = t-a;              %teller: aantal loops
-      if (strcmp(val, '1 in') && mode==1) || (strcmp(val, '3 out') && mode==3)
-        if ~strcmp(val,prev_val)  %check if the cycle has started
-          v(count+1) = 1;         %matlab starts counting at 1 instead of 0
-        else
-          v(count+1) = 0;
+    while sum(v) <= n_cycles + 1  %the last interval will be cut off
+      val = l2.getall(trace, a, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+      % first set the mode (look for inor out)
+      if mode == 0
+        % Search for the last change in starting_dir (in or out)
+        % Only the cycles before this cycle are stored.
+        if ~strcmp(val,prev_val)
+          if strcmp(val,'1 in')
+            mode = 1;
+            v = [1];
+            t_end = a;              % t_end = t+1 - 1   discard the current t
+          elseif strcmp(val,'3 out')
+            mode = 3;
+            v = [1];
+            t_end = a;
+          end
         end
       else
-        v(count+1) = 0;
+        count = count + 1;
+        if (strcmp(val, '1 in') && mode==1) || (strcmp(val, '3 out') && mode==3)
+          if ~strcmp(val,prev_val)  %store only the start/end of a cycle
+            v(count) = 1;
+          else
+            v(count) = 0;
+          end
+        else
+          v(count) = 0;
+        end
       end
+      a = a - 1;
       prev_val = val;
-      a = a-1;
       if a <= 1,      break; end; %break at t1
       if count>max,   break; end; %break when max timesteps has been searched
-    end
-    %note that v is reversed, all the new (older t) values were appended to the vector
+    end % end of while loop
 
-    %calulate interval size + number of breathing cycles
-    t_last_start = t - find(v==1,1); %can be [] (empty)
-    if isempty(t_last_start)          %no cycles found: return 0
+    % Now determine the interval size + number of breathing cycles
+    if sum(v) < 2
       breathing_f = 0;
-      % disp('no cycles found')
+      if t > 15, disp('no cycles found'); end;
     else
-      t_start = a;
-      t_end = t_last_start - 1;
-      if t_end<1 && t>10, t_end=1; disp(t); disp('t_end < 1'); end;
-      if t_end<t_start, disp('kanniet - interval onjuist. t =');disp(t);  end;
-
-      interval = t_end - t_start;
-      n = sum(v);    %can be less than the original
-      breathing_f = n / interval * dt;
+      % min n_cycles is not always reached
+      % v is a reversed list, thus the last interval is the start (lowest t)
+      % the index of the 'start' = the length of the interval
+      % e.g. v               = [1 0 0 0 0 1 0 0 0]
+      %      corresponding t = [9 8 7 6 5 4 3 2 1]
+      %      start or index  = 9 - 4  = 5
+      %      used interval   = [1 0 0 0 0]
+      %      lenght(interval) = 4
+      %      n                = sum(used interval)
+      index = length(v) - find(fliplr(v)==1,1);
+      v2 = v(1:index);
+      n = sum(v2);
+      breathing_f = n / index * dt;
     end
   end
   result = {t+1, 'belief', predicate('breathing_f', breathing_f)};
 end
+
+
+    % %     % Now calulate the interval size + number of breathing cycles
+    % %     %   the list v is reversed, all the new (older t) values were appended to v
+    % %     %   t_last_start is the first instance of '1' in the list v
+    % %     %   The search has started at t+1
+    % %     %   Thus, if find(v==1,1) == 1, t_last_start = t+1
+    % %     %         if find(v==1,1) == 2  t_last_start = t+1 - 1 = t+1 + (1 - 2)
+    % %     %         if find(v==1,1) == 3  t_last_start = t+1 - 2 = t+1 + (1 - 3)
+    % %     %     t_last_start = t+1 + 1 - find(v==1,1)
+    % %     %     t_end = t_last_start - 1
+    % %     t_end = t+1 - find(v==1,1);       %can be [] (empty)
+    % %     t_start = a+1;
+    %
+    % t_start = a+1;    % t_start = t_end - count = t_end - length(v)
+    % if t_start ~= t_end - length(v)
+    %   disp('t_start ~= t_end - length(v)')
+    %   t
+    %   a
+    %   t_start
+    %   t_end
+    %   count
+    %   disp(length(v))
+    % end
+    %
+    %
+    % if sum(v) < 1
+    %   breathing_f = 0;
+    %   disp('no cycles found')
+    % elseif t_end <= t_start           % interval = 0
+    %   breathing_f = 0;
+    %   disp('t_end <= t_start')
+    % else
+    %   n = sum(v);    % can be less than the original & the last starting point was removed
+    %   interval = t_end - t_start;
+    %   breathing_f = n / interval * dt;
+    % end
+  % end
+
+  %     % if mode == 0 && strcmp(val,'1 in')
+  %     %     mode = 1
+  %     % elseif mode == 0 && strcmp(val,'1 in')
+  %     %     mode = 3
+  %     % end
+  %   %   count = t-a;                %teller: aantal loops; starts at 0
+  %   %   if (strcmp(val, '1 in') && mode==1) || (strcmp(val, '3 out') && mode==3)
+  %   %     if ~strcmp(val,prev_val)  %store only the start/end of a cycle
+  %   %       v(count+1) = 1;         %matlab starts counting at 1 instead of 0
+  %   %     else
+  %   %       v(count+1) = 0;
+  %   %     end
+  %   %   else
+  %   %     v(count+1) = 0;
+  %   %   end
+  %   %   prev_val = val;
+  %   %   a = a-1;
+  %   %   if a <= 1,      break; end; %break at t1
+  %   %   if count>max,   break; end; %break when max timesteps has been searched
+  %   % end
+  %   % t
+  %   % v
+  %   if sum(v) <= 1    %a minimum of 2 starting point is needed to determine an interval
+  %     breathing_f = 0;
+  %     disp('no cycles found')
+  %   else
+  %     % Now calulate the interval size + number of breathing cycles
+  %     %   the list v is reversed, all the new (older t) values were appended to v
+  %     %   t_last_start is the first instance of '1' in the list v
+  %     %   The search has started at t+1
+  %     %   Thus, if find(v==1,1) == 1, t_last_start = t+1
+  %     %         if find(v==1,1) == 2  t_last_start = t+1 - 1 = t+1 + (1 - 2)
+  %     %         if find(v==1,1) == 3  t_last_start = t+1 - 2 = t+1 + (1 - 3)
+  %     %     t_last_start = t+1 + 1 - find(v==1,1)
+  %     %     t_end = t_last_start - 1
+  %     t_end = t+1 - find(v==1,1);       %can be [] (empty)
+  %     t_start = a+1;
+  %     if t_end == t_start           % interval = 0
+  %       breathing_f = 0;
+  %     else
+  %       if t_end<1, t_end=1; disp(t); disp('t_end < 1'); end;
+  %       if t_end<t_start, disp('kanniet - interval onjuist. t =');disp(t);  end;
+  %       n = sum(v) - 1;    %can be less than the original & the last starting point was removed
+  %       interval = t_end - t_start;
+  %       breathing_f = n / interval * dt;
+  %     end
+  %   end
+  % end
+
 
 function result = bel_d_hr( model, trace, parameters, t )
   prev_d  = l2.getall(trace, t, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
