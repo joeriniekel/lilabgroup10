@@ -32,20 +32,18 @@ function result = anxiety_regulation( model, trace, parameters, t )
 end
 
 function result = anxiety( model, trace, parameters, t )
-  % [0;100]
+  % percentage of full capacity
   sitfac        = trace(t).sitfac.arg{1}; %gives errors (t+1 of t)
   prev_anxiety  = trace(t).anxiety.arg{1};
   regulation    = trace(t+1).anxiety_regulation.arg{1};
   decay         = model.parameters.default.anxiety_decay;
   disfac        = model.parameters.default.disfac;
-  s             = model.parameters.default.sitfac_anxiety;
   % Inf waardes geven errors... wachten op bugfix van linford
   % sitfac        = trace(t).sitfac;
-  % t
-  % sitfac
-  % sitfac = 0;
-  new_anxiety = (s * sitfac + prev_anxiety * decay) * (1 - regulation);
-  result = {t+1, 'anxiety', new_anxiety};
+
+  anxiety = (disfac * sitfac + prev_anxiety * decay) * (1 - regulation);
+  %nieuw
+  result = {t+1, 'anxiety', anxiety};
 end
 
 function result = hr_var( model, trace, parameters, t )
@@ -217,6 +215,15 @@ function result = starting_dir( model, trace, parameters, t )
   result = {t+1, 'starting_dir', {curr_dir2}};
 end
 
+%nieuw
+function result = performance( model, trace, parameters, t )
+  % percentage of full capacity
+  anxiety  = trace(t+1).anxiety.arg{1};
+  performance = 100 - anxiety;
+  if performance < 0, performance = 0;  end;
+  result = {t+1, 'performance', {performance}};
+end
+
 
 %
 %
@@ -356,94 +363,6 @@ function result = bel_breathing_f( model, trace, parameters, t )
   end
   result = {t+1, 'belief', predicate('breathing_f', breathing_f)};
 end
-
-
-    % %     % Now calulate the interval size + number of breathing cycles
-    % %     %   the list v is reversed, all the new (older t) values were appended to v
-    % %     %   t_last_start is the first instance of '1' in the list v
-    % %     %   The search has started at t+1
-    % %     %   Thus, if find(v==1,1) == 1, t_last_start = t+1
-    % %     %         if find(v==1,1) == 2  t_last_start = t+1 - 1 = t+1 + (1 - 2)
-    % %     %         if find(v==1,1) == 3  t_last_start = t+1 - 2 = t+1 + (1 - 3)
-    % %     %     t_last_start = t+1 + 1 - find(v==1,1)
-    % %     %     t_end = t_last_start - 1
-    % %     t_end = t+1 - find(v==1,1);       %can be [] (empty)
-    % %     t_start = a+1;
-    %
-    % t_start = a+1;    % t_start = t_end - count = t_end - length(v)
-    % if t_start ~= t_end - length(v)
-    %   disp('t_start ~= t_end - length(v)')
-    %   t
-    %   a
-    %   t_start
-    %   t_end
-    %   count
-    %   disp(length(v))
-    % end
-    %
-    %
-    % if sum(v) < 1
-    %   breathing_f = 0;
-    %   disp('no cycles found')
-    % elseif t_end <= t_start           % interval = 0
-    %   breathing_f = 0;
-    %   disp('t_end <= t_start')
-    % else
-    %   n = sum(v);    % can be less than the original & the last starting point was removed
-    %   interval = t_end - t_start;
-    %   breathing_f = n / interval * dt;
-    % end
-  % end
-
-  %     % if mode == 0 && strcmp(val,'1 in')
-  %     %     mode = 1
-  %     % elseif mode == 0 && strcmp(val,'1 in')
-  %     %     mode = 3
-  %     % end
-  %   %   count = t-a;                %teller: aantal loops; starts at 0
-  %   %   if (strcmp(val, '1 in') && mode==1) || (strcmp(val, '3 out') && mode==3)
-  %   %     if ~strcmp(val,prev_val)  %store only the start/end of a cycle
-  %   %       v(count+1) = 1;         %matlab starts counting at 1 instead of 0
-  %   %     else
-  %   %       v(count+1) = 0;
-  %   %     end
-  %   %   else
-  %   %     v(count+1) = 0;
-  %   %   end
-  %   %   prev_val = val;
-  %   %   a = a-1;
-  %   %   if a <= 1,      break; end; %break at t1
-  %   %   if count>max,   break; end; %break when max timesteps has been searched
-  %   % end
-  %   % t
-  %   % v
-  %   if sum(v) <= 1    %a minimum of 2 starting point is needed to determine an interval
-  %     breathing_f = 0;
-  %     disp('no cycles found')
-  %   else
-  %     % Now calulate the interval size + number of breathing cycles
-  %     %   the list v is reversed, all the new (older t) values were appended to v
-  %     %   t_last_start is the first instance of '1' in the list v
-  %     %   The search has started at t+1
-  %     %   Thus, if find(v==1,1) == 1, t_last_start = t+1
-  %     %         if find(v==1,1) == 2  t_last_start = t+1 - 1 = t+1 + (1 - 2)
-  %     %         if find(v==1,1) == 3  t_last_start = t+1 - 2 = t+1 + (1 - 3)
-  %     %     t_last_start = t+1 + 1 - find(v==1,1)
-  %     %     t_end = t_last_start - 1
-  %     t_end = t+1 - find(v==1,1);       %can be [] (empty)
-  %     t_start = a+1;
-  %     if t_end == t_start           % interval = 0
-  %       breathing_f = 0;
-  %     else
-  %       if t_end<1, t_end=1; disp(t); disp('t_end < 1'); end;
-  %       if t_end<t_start, disp('kanniet - interval onjuist. t =');disp(t);  end;
-  %       n = sum(v) - 1;    %can be less than the original & the last starting point was removed
-  %       interval = t_end - t_start;
-  %       breathing_f = n / interval * dt;
-  %     end
-  %   end
-  % end
-
 
 function result = bel_d_hr( model, trace, parameters, t )
   prev_d  = l2.getall(trace, t, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
