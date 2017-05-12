@@ -42,7 +42,6 @@ function result = anxiety( model, trace, parameters, t )
   % sitfac        = trace(t).sitfac;
 
   anxiety = (disfac * sitfac + prev_anxiety * decay) * (1 - regulation);
-  %nieuw
   result = {t+1, 'anxiety', anxiety};
 end
 
@@ -77,7 +76,7 @@ function result = breathing_f( model, trace, parameters, t )
   hr_bpm  = trace(t+1).hr.arg{1};
   anxiety = trace(t+1).anxiety.arg{1};
   h       = model.parameters.default.hr_breathing;
-  h2      = model.parameters.default.hr_breathing_exp;
+  % h2      = model.parameters.default.hr_breathing_exp;
   a2      = model.parameters.default.anxiety_bf;
 
   hr = hr_bpm / 60; % in s-1
@@ -215,7 +214,6 @@ function result = starting_dir( model, trace, parameters, t )
   result = {t+1, 'starting_dir', {curr_dir2}};
 end
 
-%nieuw
 function result = performance( model, trace, parameters, t )
   % percentage of full capacity
   anxiety  = trace(t+1).anxiety.arg{1};
@@ -391,9 +389,10 @@ function result = bel_anxiety( model, trace, parameters, t )
   hr = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   d_bf = l2.getall(trace, t+1, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
   d_hr = l2.getall(trace, t+1, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
-  decay     = model.parameters.default.anxiety_decay;
-  floor_hr  = 15;
-  floor_bf  = 0.05;
+  decay    = model.parameters.default.anxiety_decay;
+  floor_hr = model.parameters.default.floor_hr;
+  floor_bf = model.parameters.default.floor_bf;
+
   if d_hr > floor_hr
     % if hr is raised (by the physical state) anxiety cannot determined
     % thus it will stay at the same level
@@ -517,9 +516,84 @@ end
 % end
 
 
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+% ---------------------------------------------------------------
+%
+%     SUPPORT
+%
+% ---------------------------------------------------------------
+%
+%
+%
+%
+
+
+function result = des_bf( model, trace, parameters, t )
+  % desired breathing_f without influence from anxiety.
+  hr_bpm = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
+  h       = model.parameters.default.hr_breathing;
+  hr = hr_bpm / 60; % in s-1
+  breathing_f = h * hr;
+  result = {t+1, 'desire', predicate('breathing_f', breathing_f)};
+end
+
+function result = des_chest_c( model, trace, parameters, t )
+  % = predicted chest_c?
+  chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+  starting_dir = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  bf = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  dt = model.parameters.default.dt;
+
+  %...
+
+  result = {t+1, 'desire', predicate('chest_c', c)};
+end
+
+% prev_relative_c?
+% used_chest_range?
+% phase_shift?
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+%
+%
+%
+%
+% ---------------------------------------------------------------
+%
+%     GRAPHS
+%
+% ---------------------------------------------------------------
+%
+%
+%
+%
 
 % Breathing_f and heart rate
 

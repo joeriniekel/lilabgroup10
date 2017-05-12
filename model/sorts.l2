@@ -11,7 +11,7 @@ POS;                {1 in, 2 rest, 3 out}
 
 OBSERVE;            {<chest_c>,<hr>}
 BELIEF;             {<chest_c>,<hr>,<starting_dir>,<ps>,<anxiety>,<breathing_f>,<d_hr>,<d_bf>,<original_hr>}
-DESIRE;             {<chest_c>,<chest_pos>,<breathing_f>}
+DESIRE;             {<breathing_f>,<chest_c>,<chest_pos>,}
 PREDICT;            {<erl>}
 ASSUME;             {<erl>}
 DEVIATION;          {<erl>}

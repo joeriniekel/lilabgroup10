@@ -63,7 +63,10 @@ default (
   %breathing f
   n_breathing_cycles; 3;
   max_interval_t;     120;
-  acc_interval;       5
-  acc_margin;         0.01
-  pattern_interval;   10
+  floor_hr;           15;
+  floor_bf;           0.05;
+
+  %acc_interval;       5
+  %acc_margin;         0.01
+  %pattern_interval;   10
 )
