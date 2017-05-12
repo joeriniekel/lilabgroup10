@@ -678,7 +678,9 @@ end
 
 
 
-
+% support
+% if assessment = true
+%   advice 'desired starting direction'   (breathe in/out)
 
 
 
