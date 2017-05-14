@@ -18,6 +18,9 @@ end
 
 % ! bij waardes uit scenario altijd (t) gebruiken ipv (t+1)
 
+%todo: geen prev_... concepten gebruiken
+
+
 function result = anxiety_regulation( model, trace, parameters, t )
   % 0 = bad, 1 = perfect
   breathing_f = trace(t).breathing_f.arg{1};
@@ -366,14 +369,14 @@ end
 %new
 function result = bel_prev_relative_c( model, trace, parameters, t )
   %the previous value of chest_c, relative to the used chest_range
-  chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+  prev_chest_c = l2.getall(trace, t, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
   min          = model.parameters.default.min_chest_c; % believed min
   max          = model.parameters.default.max_chest_c; % believed max
   range = max - min;
   A = range / 2;
   avg_chest_c = min + A;            % 70
 
-  relative_c = (chest_c - avg_chest_c) / A;
+  relative_c = (prev_chest_c - avg_chest_c) / A;
     % value is in range [-1,1], except when the range changes between different points in time
   if      relative_c >  1, relative_c =  1;
   elseif  relative_c < -1, relative_c = -1;  end;
@@ -387,7 +390,7 @@ function result = bel_prev_phase_shift( model, trace, parameters, t )
   %phase_shift of chest_c-cycle on t-1,
   % value will be used in (t-1) to calculate chest_c
   % to calculate the phase, we need the new used_chest_range
-  prev_starting_dir = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  prev_starting_dir = l2.getall(trace, t, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
   relative_c = l2.getall(trace, t+1, 'belief', predicate('prev_relative_c', NaN)).arg{1}.arg{1};
   f = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   range = 1;  %assume that range is 1. if not, change min and max params?
@@ -450,6 +453,9 @@ function result = bel_d_bf( model, trace, parameters, t )
 end
 
 function result = bel_anxiety( model, trace, parameters, t )
+  %todo: niet naar d_bf kijken, maar naar expected_bf (from hr) vs belief_bf 
+  %new
+
   prev_anxiety = l2.getall(trace, t, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
   bf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   hr = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
@@ -504,6 +510,7 @@ end
 function result = assessment( model, trace, parameters, t )
   anxiety = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
   floor_a = 10;
+  floor_a = 0;
   if anxiety > floor_a
     assessment = true;
   else
@@ -619,30 +626,6 @@ function result = des_bf( model, trace, parameters, t )
   result = {t+1, 'desire', predicate('breathing_f', breathing_f)};
 end
 
-% function result = des_chest_c( model, trace, parameters, t )
-%   % prev starting dir gebruiken?
-%    % predicted chest_c?
-%   prev_chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
-%   starting_dir = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
-%   f = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
-%   phi = l2.getall(trace, t+1, 'desire', predicate('prev_phase_shift', NaN)).arg{1}.arg{1};
-%   dt = model.parameters.default.dt;
-%   min         = model.parameters.default.min_chest_c;
-%   max         = model.parameters.default.max_chest_c;
-%   range = max - min;
-%   A = range / 2;
-%   avg_chest_c  = min + A;  
-
-%   % f = dt * f; % breathing_f is already inheritably adapted to dt,
-%                 % but if dt is changed during simulation, it could produce weird behaviour.
-%   A = range / 2;
-%   % y(t) = A sin(2 pi f t dt + phi)
-%   chest_c = A * sin(2*pi* f * dt + phi) + avg_chest_c;
-  
-%   result = {t+1, 'desire', predicate('chest_c', chest_c)};
-% end
-
-
 
 % desire next_starting_dir
 % = feedback
@@ -681,10 +664,22 @@ end
 % support
 % if assessment = true
 %   advice 'desired starting direction'   (breathe in/out)
+% function result = support( model, trace, parameters, t )
 
 
+%   result = {t+1, 'desire', predicate('starting_dir', curr_dir2)};
+% end
+function result = support( model, trace, parameters, t )
+  starting_dir = l2.getall(trace, t+1, 'desire', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  assessment = trace(t+1).assessment.arg{1};
 
-
+  if assessment
+    starting_dir = starting_dir;
+  else
+    starting_dir = '4 none';
+  end
+  result = {t+1, 'support', {starting_dir}};
+end
 
 
 
@@ -745,22 +740,22 @@ end
 
 % Support model
 
-
-
-
-
 function result = graph_des_bf( model, trace, parameters, t )
-  x   = l2.getall(trace, t+1, 'desire', predicate('des_bf', NaN)).arg{1}.arg{1};
-  result = {t+1, 'graph_des_bf', x};
+  x   = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_des_breathing_f', x};
 end
-
+function result = graph_breathing_f_diff( model, trace, parameters, t )
+  bel_bf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  des_bf = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_breathing_f_diff', bel_bf - des_bf};
+end
+function result = graph_relative_c_diff( model, trace, parameters, t )
+  bel_bf = l2.getall(trace, t+1, 'belief', predicate('prev_relative_c', NaN)).arg{1}.arg{1};
+  des_bf = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_breathing_f_diff', bel_bf - des_bf};
+end
 function result = graph_des_starting_dir( model, trace, parameters, t )
-  x   = l2.getall(trace, t+1, 'desire', predicate('graph_des_starting_dir', NaN)).arg{1}.arg{1};
+  x   = l2.getall(trace, t+1, 'desire', predicate('starting_dir', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_des_starting_dir', x};
 end
-
-
-
-
-
 
