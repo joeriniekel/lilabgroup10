@@ -23,8 +23,9 @@ performance;          REAL
 breathing_intensity;  REAL
 used_chest_range;     REAL
 chest_c;              REAL
-prev_relative_c;      REAL
-prev_phase_shift;     REAL
+mind;									{POS}
+relative_c;						REAL
+phase_shift;					REAL
 starting_dir;         {POS}
 
 % ANALYSIS MODEL
@@ -63,7 +64,7 @@ graph_bel_anxiety;				REAL
 graph_des_breathing_f;		REAL
 graph_des_starting_dir;		{POS}
 graph_breathing_f_diff;		REAL
-
+graph_bel_phi;								REAL
 
 
 %analysis - beliefs

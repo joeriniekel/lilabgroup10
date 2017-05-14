@@ -10,8 +10,8 @@ POS;                {1 in, 2 rest, 3 out, 4 none}
 % beliefs etc
 
 OBSERVE;            {<chest_c>,<hr>}
-BELIEF;             {<chest_c>,<hr>,<prev_relative_c>,<starting_dir>,<prev_phase_shift>,<ps>,<anxiety>,<breathing_f>,<d_hr>,<d_bf>,<original_hr>}
-DESIRE;             {<breathing_f>,<chest_c>,<starting_dir>,<prev_phase_shift>}
+BELIEF;             {<chest_c>,<hr>,<relative_c>,<starting_dir>,<phase_shift>,<ps>,<anxiety>,<breathing_f>,<d_hr>,<d_bf>,<original_hr>}
+DESIRE;             {<breathing_f>,<chest_c>,<starting_dir>}
 PREDICT;            {<erl>}
 ASSUME;             {<erl>}
 DEVIATION;          {<erl>}
