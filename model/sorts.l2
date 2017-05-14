@@ -1,6 +1,6 @@
 %SWITCH;     {On, Off}
 
-POS;                {1 in, 2 rest, 3 out}
+POS;                {1 in, 2 rest, 3 out, 4 none}
   %alphabetic ordering
 %PATTERN;                {regular, irregular}
   %alphabetic ordering

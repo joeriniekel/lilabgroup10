@@ -21,7 +21,7 @@ default (
   sitfac{50};             [151:300]
 
   ps{01};   	            [1:10]
-  ps{5};   	              [11:30]
+  ps{01};   	            [11:30]
   ps{01};   	            [31:300]
 
   anxiety{0};             [1]
@@ -51,19 +51,18 @@ default (
 
   % desires
   desire{prev_phase_shift{0}};    [1]
-
-
-
-  %  belief{chest_pos{2 rest}};  [1]
-  % %belief{chest_change{true}};  [1]
-      %needs to be defined because (t+2) is used
-    belief{breathing_f{10}};    [1]
+  desire{breathing_f{10}};    [1]
 
 
   graph_breathing_f_error{0};   [1:Inf]
+  graph_breathing_f_diff{0};    [1:Inf]
     %the zero-line
-  %graph_breathing_f_error{-0.1};   [1:10]
-    %the analysis model works after about 10/dt timesteps
+
+
+
+
+
+
 
   %v2{10};                 [1:Inf]
   %lightvalue{rtinput_lightsensor}; [1:Inf]

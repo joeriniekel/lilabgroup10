@@ -1,10 +1,10 @@
 observe;            {OBSERVE}
 belief;             {BELIEF}
 desire;             {DESIRE}
-predict;            {PREDICT}
-assume;             {ASSUME}
-deviation;          {DEVIATION}
-sensitivity;        {SENS}
+%predict;            {PREDICT}
+%assume;             {ASSUME}
+%deviation;          {DEVIATION}
+%sensitivity;        {SENS}
 
 
 
@@ -40,13 +40,14 @@ breathing_acc;	      REAL
 	%acceleration of the breathing f
 	%(thus the amount the breathing f increases)
 breathing_pattern;  {PATTERN}
-
+support;							{POS}
 
 
 
 
 
 % Graphs
+% ANALYSIS
 graph_hr;									REAL
 graph_bel_starting_dir;		{POS}
 graph_bel_breathing_f;    REAL
@@ -57,15 +58,20 @@ graph_bel_prev_ps;				REAL
 graph_original_hr;				REAL
 graph_bel_anxiety;				REAL
 
-%support - desires
-graph_des_bf;							REAL
-graph_des_starting_dir;		REAL
+
+% SUPPORT
+graph_des_breathing_f;		REAL
+graph_des_starting_dir;		{POS}
+graph_breathing_f_diff;		REAL
 
 
-graph_bel_chest_pos;          {POS}
-graph_bel_chest_change;       BOOLEAN
-graph_bel_breathing_acc;      REAL
-graph_bel_breathing_pattern;  {PATTERN}
+
+%analysis - beliefs
+%graph_bel_chest_pos;          {POS}
+%graph_bel_chest_change;       BOOLEAN
+%graph_bel_breathing_acc;      REAL
+%graph_bel_breathing_pattern;  {PATTERN}
+
 
 %lightvalue;                 REAL
 %light;                      SWITCH
