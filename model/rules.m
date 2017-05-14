@@ -74,9 +74,9 @@ function result = hr( model, trace, parameters, t )
   bhr     = model.parameters.default.bhr;
   lhr     = model.parameters.default.lhr;
 
-  hr_new = (bhr + ps) + (a * anxiety) + var;
-  if hr_new < lhr, hr_new = lhr; disp('lhr reached!'); end;
-  result = {t+1, 'hr', hr_new};
+  hr = (bhr + ps) + (a * anxiety) + var;
+  if hr < lhr, hr = lhr; disp('lhr reached!'); end;
+  result = {t+1, 'hr', hr};
 end
 
 function result = breathing_f( model, trace, parameters, t )
@@ -103,10 +103,10 @@ function result = used_chest_range( model, trace, parameters, t )
 end
 
 function result = chest_c( model, trace, parameters, t )
-  chest_c = trace(t).chest_c.arg{1}; %new
-  f       = trace(t).breathing_f.arg{1}; %new
-  range   = trace(t).used_chest_range.arg{1}; %new t ipv t+1
-  phi     = trace(t).phase_shift.arg{1}; %new
+  chest_c = trace(t).chest_c.arg{1};
+  f       = trace(t).breathing_f.arg{1};
+  range   = trace(t).used_chest_range.arg{1};
+  phi     = trace(t).phase_shift.arg{1};
   dt          = model.parameters.default.dt;
   min         = model.parameters.default.min_chest_c;
   max         = model.parameters.default.max_chest_c;
