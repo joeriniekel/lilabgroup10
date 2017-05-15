@@ -21,8 +21,8 @@ end
 %todo: geen prev_... concepten gebruiken
 
 function result = mind( model, trace, parameters, t )
-  % dir = trace(t+1).support.arg{1};
-  dir = '4 none';
+  dir = trace(t).support.arg{1};
+  % dir = '4 none';
   result = {t+1, 'mind', {dir}};
 end
 
@@ -117,18 +117,20 @@ function result = chest_c( model, trace, parameters, t )
   % y(t) = A sin(2 pi f t dt + phi)
   curr_chest_c = A * sin(2*pi* f * dt + phi) + avg_chest_c;
 
+
   %new
   % assume that user always listens to support
   dir = trace(t+1).mind.arg{1}; %new
   if strcmp(dir,'1 in')
     if chest_c < max
-      curr_chest_c = (max - chest_c) / 2;
+      curr_chest_c = chest_c + (max - chest_c) / 2;
+      %note that max will never will reached
     else
       curr_chest_c = max;
     end
   elseif strcmp(dir,'3 out')
     if chest_c > min
-      curr_chest_c = (chest_c - min) / 2;
+      curr_chest_c = chest_c - (chest_c - min) / 2;
     else
       curr_chest_c = min;
     end
@@ -360,7 +362,7 @@ function result = bel_breathing_f( model, trace, parameters, t )
     % Now determine the interval size + number of breathing cycles
     if sum(v) < 2
       breathing_f = 0;
-      if t > 15, disp('no cycles found'); end;
+      if t > 6/dt, disp('no cycles found'); end;
     else
       % min n_cycles is not always reached
       % v is a reversed list, thus the last interval is the start (lowest t)
@@ -374,76 +376,84 @@ function result = bel_breathing_f( model, trace, parameters, t )
       index = length(v) - find(fliplr(v)==1,1);
       v2 = v(1:index);
       n = sum(v2);
-      breathing_f = n / index * dt;
+      breathing_f = (n / index) / dt; %new: * 1/dt
     end
   end
   result = {t+1, 'belief', predicate('breathing_f', breathing_f)};
 end
 
-%new (2)
-function result = bel_relative_c( model, trace, parameters, t )
-  %the previous value of chest_c, relative to the used chest_range
-  chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
-  min          = model.parameters.default.min_chest_c; % believed min
-  max          = model.parameters.default.max_chest_c; % believed max
-  range = max - min;
-  A = range / 2;
-  avg_chest_c = min + A;            % 70
+% %new
+% function result = bel_relative_c( model, trace, parameters, t )
+%   %the previous value of chest_c, relative to the used chest_range
+%   chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+%   min          = model.parameters.default.min_chest_c; % believed min
+%   max          = model.parameters.default.max_chest_c; % believed max
+%   %todo param adaption gebruiken voor min en max?
+%   range = max - min;
+%   A = range / 2;
+%   avg_chest_c = min + A;            % 70
+%
+%   relative_c = (chest_c - avg_chest_c) / A;
+%     % value is in range [-1,1], except when the range changes between different points in time
+%   if      relative_c >  1, relative_c =  1;
+%   elseif  relative_c < -1, relative_c = -1;  end;
+%
+%   %ffor param adaption...
+%   if chest_c > max - 0.5
+%     relative_c = 1;
+%   elseif chest_c < min + 0.5
+%     relative_c = -1;
+%   end
+%
+%   result = {t+1, 'belief', predicate('relative_c',relative_c)};
+% end
+% %new
 
-  relative_c = (chest_c - avg_chest_c) / A;
-    % value is in range [-1,1], except when the range changes between different points in time
-  if      relative_c >  1, relative_c =  1;
-  elseif  relative_c < -1, relative_c = -1;  end;
-
-  result = {t+1, 'belief', predicate('relative_c',relative_c)};
-end
-%new
-
-%new (2)
-function result = bel_phase_shift( model, trace, parameters, t )
-  %phase_shift of chest_c-cycle on t-1,
-  % value will be used in (t-1) to calculate chest_c
-  % to calculate the phase, we need the new used_chest_range
-  starting_dir = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
-  relative_c   = l2.getall(trace, t+1, 'belief', predicate('relative_c', NaN)).arg{1}.arg{1};
-  f            = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  range = 1;  %assume that range is 1. if not, change min and max params?
-
-  % Formula for a basic sin wave: x(t) = A * sin(2*pi* f * t) + d;
-  % However, f can change during a cycle
-  % Adapt the formula so that f can be changed:
-  %   Let t = 1 and use +phi to shift the wave (with +phi in range[0,2pi])
-  %   phi has to be calculate manually because the range is also variable
-  %   (phi = asin( x(t)/prev_A) -2*pi*f*t) can not be used
-
-  % calculate the phase shift (phi)
-  %  2pi = full shift
-  %  1pi = half shift (inverted direction)
-  % .5pi = heighest point
-
-  % val = relative_c * 0.5 * pi;
-  % omschrijven: use asin to convert the [-1,1] to a 'sin-shape'
-  % want sin(t*0.5pi) is niet evenredig met t[0:1]
-  % val = asin(relative_c)/pi*2    * 0.5 * pi
-  val = asin(relative_c);
-
-  if strcmp(starting_dir, '1 in')
-    % phi = relative_c * 0.5 * pi;
-    phi = val;
-  else
-    %   % prev_starting_dir = '3 out'
-    % phi = relative_c * -0.5*pi + pi;
-    phi = val  * -1 + pi;
-    % eigenlijk:
-    % if relative_c > 0       % make pos relative_c negative
-    %   phi = val * -1 + pi;
-    % else                    % make negative relative_c positive
-    %   phi = val * -1 + pi;
-    % end
-  end
-  result = {t+1, 'belief', predicate('phase_shift',phi)};
-end
-%new
+% %new
+% function result = bel_phase_shift( model, trace, parameters, t )
+%   %phase_shift of chest_c-cycle on t-1,
+%   % value will be used in (t-1) to calculate chest_c
+%   % to calculate the phase, we need the new used_chest_range
+%   starting_dir = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+%   relative_c   = l2.getall(trace, t+1, 'belief', predicate('relative_c', NaN)).arg{1}.arg{1};
+%   f            = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+%   range = 1;  %assume that range is 1. if not, change min and max params?
+%
+%   % Formula for a basic sin wave: x(t) = A * sin(2*pi* f * t) + d;
+%   % However, f can change during a cycle
+%   % Adapt the formula so that f can be changed:
+%   %   Let t = 1 and use +phi to shift the wave (with +phi in range[0,2pi])
+%   %   phi has to be calculate manually because the range is also variable
+%   %   (phi = asin( x(t)/prev_A) -2*pi*f*t) can not be used
+%
+%   % calculate the phase shift (phi)
+%   %  2pi = full shift
+%   %  1pi = half shift (inverted direction)
+%   % .5pi = heighest point
+%
+%   % val = relative_c * 0.5 * pi;
+%   % omschrijven: use asin to convert the [-1,1] to a 'sin-shape'
+%   % want sin(t*0.5pi) is niet evenredig met t[0:1]
+%   % val = asin(relative_c)/pi*2    * 0.5 * pi
+%   val = asin(relative_c);
+%
+%   if strcmp(starting_dir, '1 in')
+%     % phi = relative_c * 0.5 * pi;
+%     phi = val;
+%   else
+%     %   % prev_starting_dir = '3 out'
+%     % phi = relative_c * -0.5*pi + pi;
+%     phi = val  * -1 + pi;
+%     % eigenlijk:
+%     % if relative_c > 0       % make pos relative_c negative
+%     %   phi = val * -1 + pi;
+%     % else                    % make negative relative_c positive
+%     %   phi = val * -1 + pi;
+%     % end
+%   end
+%   result = {t+1, 'belief', predicate('phase_shift',phi)};
+% end
+% %new
 
 function result = bel_d_hr( model, trace, parameters, t )
   prev_d  = l2.getall(trace, t, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
@@ -481,7 +491,13 @@ function result = bel_anxiety( model, trace, parameters, t )
   floor_hr = model.parameters.default.floor_hr;
   floor_bf = model.parameters.default.floor_bf;
 
-  if d_hr > floor_hr
+  h       = model.parameters.default.hr_breathing;
+  margin = 0;
+
+  if bf > h * hr - margin
+    anxiety = 100 * (bf - h * hr) + prev_anxiety * decay
+    % anxiety = 10 * d_bf + prev_anxiety * decay;
+  elseif d_hr > floor_hr
     % if hr is raised (by the physical state) anxiety cannot determined
     % thus it will stay at the same level
     anxiety = prev_anxiety;
@@ -524,7 +540,6 @@ end
 
 function result = assessment( model, trace, parameters, t )
   anxiety = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
-  floor_a = 10;
   floor_a = 0;
   if anxiety > floor_a
     assessment = true;
@@ -638,6 +653,9 @@ function result = des_bf( model, trace, parameters, t )
   h       = model.parameters.default.hr_breathing;
   hr = hr_bpm / 60; % in s-1
   breathing_f = h * hr;
+
+  %testing:   this should determine the final bf of the user
+  % breathing_f = 0.4;
   result = {t+1, 'desire', predicate('breathing_f', breathing_f)};
 end
 
@@ -676,63 +694,129 @@ end
 %   advice rest
 
 
+% oude des_starting_dir werkt niet:
+%   support is afhankelijk van chest c, maar stuurt de breathing intensity
+%   (snelheid van het ademen zelf) niet aan.
+%
+%
 
-function result = des_starting_dir( model, trace, parameters, t )
-  % prevent giving a false desired starting dir when phi = 0.49pi
-  % compute average breathing direction in the next interval
-  f   = l2.getall(trace, t, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  phi = l2.getall(trace, t, 'belief', predicate('phase_shift', NaN)).arg{1}.arg{1};
-  dt = model.parameters.default.dt;
+%when to start cycle time? todo
 
-  margin = 90 * 0.5*pi *0.01;  %90%
-  % alsublieft, maar 1 enkel if-statement
-  % e.g. if phi in between [margin, pi - margin]; 'rest'
-  if (margin < phi && phi < pi - margin) || (margin + pi < phi && phi < 2*pi - margin)
-    avg_dir = '2 rest';
-  else
-    %params
-    start = 0.1;
-    interval = 0.3;
+function result = cycle_time( model, trace, parameters, t )
+  % we can just give support about breathing in or out (quantitative)
+  % not exactly how deep (fast) to breathe (qualitative)
 
-    dirs = [];
-    count = 0;
-    for t1=start:interval:1
-      x1 = sin(2*pi*f*dt* t1 + phi);
-      x2 = sin(2*pi*f*dt* t1 + 0.001 + phi);
-      count = count+1;
-      if x1>=x2
-        dirs(count) = 1;
-      else
-        dirs(count) = -1;
-      end
-    end
+  % when user should breathe in:  cycle_time = positive
+  % when user should breathe out: cycle_time = negative
+  % cycle_time is never 0
+  prev_ct = trace(t).cycle_time.arg{1};
+  bf      = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  dt  = model.parameters.default.dt;
+  max_cycle_time = 1/bf * 1/dt; % 1/0.5 * 1/0.1 = 20
 
-    if sum(dirs)/count > 0
-      avg_dir = '1 in';
+  if prev_ct > 0 % 'in'
+    if prev_ct < 0.5 * max_cycle_time % between 0 and 10
+      cycle_time = prev_ct + 1;
     else
-      avg_dir = '3 out';
+      cycle_time = -1;
+    end
+  else % 'out'
+    if prev_ct > -0.5 * max_cycle_time % between -10 and 0
+      cycle_time = prev_ct - 1;
+    else
+      cycle_time = 1;
     end
   end
-  result = {t+1, 'desire', predicate('starting_dir', {avg_dir})};
+  result = {t+1, 'cycle_time', cycle_time};
 end
+
+function result = des_starting_dir( model, trace, parameters, t )
+  cycle_time = trace(t+1).cycle_time.arg{1};
+  chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+  min          = model.parameters.default.min_chest_c; % believed min
+  max          = model.parameters.default.max_chest_c; % believed max
+  %todo param adaption gebruiken voor min en max?
+
+  if cycle_time > 0
+    if chest_c < max
+      dir = '1 in';
+    else
+      dir = '2 rest';
+    end
+  else % cycle_time < 0
+    if chest_c > min
+      dir = '3 out';
+    else
+      dir = '2 rest';
+    end
+  end
+  result = {t+1, 'desire', predicate('starting_dir', {dir})};
+end
+% function result = des_starting_dir( model, trace, parameters, t )
+%   % prevent giving a false desired starting dir when phi = 0.49pi
+%   % compute average breathing direction in the next interval
+%   f   = l2.getall(trace, t, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
+%   phi = l2.getall(trace, t, 'belief', predicate('phase_shift', NaN)).arg{1}.arg{1};
+%   dt = model.parameters.default.dt;
+%
+%   margin = asin(1);  %90%
+%   % alsublieft, maar 1 enkel if-statement
+%   % e.g. if phi in between [margin, pi - margin]; 'rest'
+%   if (margin < phi && phi < pi - margin) || (pi + margin < phi && phi < 2*pi - margin)
+%     avg_dir = '2 rest'
+%     margin
+%     phi
+%   else
+%     %params
+%     start = 0.1;
+%     interval = 0.3;
+%     dirs = [];
+%     count = 0;
+%     for t1=start:interval:1
+%       x1 = sin(2*pi*f*dt* t1 + phi);
+%       x2 = sin(2*pi*f*dt* t1 + 0.001 + phi);
+%       count = count+1;
+%       if x1>=x2
+%         dirs(count) = 1;
+%       else
+%         dirs(count) = -1;
+%       end
+%     end
+%
+%     if sum(dirs)/count > 0
+%       avg_dir = '1 in';
+%     else
+%       avg_dir = '3 out';
+%     end
+%   end
+%   result = {t+1, 'desire', predicate('starting_dir', {avg_dir})};
+% end
 
 
 function result = support( model, trace, parameters, t )
   starting_dir = l2.getall(trace, t+1, 'desire', predicate('starting_dir', NaN)).arg{1}.arg{1};
   assessment = trace(t+1).assessment.arg{1};
+  % assessment = true;
 
   if assessment
     starting_dir = starting_dir;
   else
     starting_dir = '4 none';
   end
+  % if t == 1, starting_dir =  '4 none';end;
+  % starting_dir =  '4 none';
   result = {t+1, 'support', {starting_dir}};
 end
 
 
 
-
-
+%
+%
+%
+%
+%
+%
+%
 %
 %
 %
@@ -785,15 +869,15 @@ function result = graph_original_hr( model, trace, parameters, t )
   h = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_original_hr', h};
 end
-function result = graph_bel_phi( model, trace, parameters, t )
-  x   = l2.getall(trace, t+1, 'belief', predicate('phase_shift', NaN)).arg{1}.arg{1};
-  result = {t+1, 'graph_bel_phi', x};
-end
+% function result = graph_bel_phi( model, trace, parameters, t )
+%   x   = l2.getall(trace, t+1, 'belief', predicate('phase_shift', NaN)).arg{1}.arg{1};
+%   result = {t+1, 'graph_bel_phi', x};
+% end
 
 % Support model
 
 function result = graph_des_bf( model, trace, parameters, t )
-  x   = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  x = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_des_breathing_f', x};
 end
 function result = graph_breathing_f_diff( model, trace, parameters, t )
@@ -802,6 +886,6 @@ function result = graph_breathing_f_diff( model, trace, parameters, t )
   result = {t+1, 'graph_breathing_f_diff', bel_bf - des_bf};
 end
 function result = graph_des_starting_dir( model, trace, parameters, t )
-  x   = l2.getall(trace, t+1, 'desire', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  x = l2.getall(trace, t+1, 'desire', predicate('starting_dir', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_des_starting_dir', x};
 end
