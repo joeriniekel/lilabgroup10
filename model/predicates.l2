@@ -35,13 +35,23 @@ d_bf;									REAL
 assessment;						BOOLEAN
 
 
-chest_pos;            {POS}
-chest_change;         BOOLEAN
-breathing_acc;	      REAL
-	%acceleration of the breathing f
-	%(thus the amount the breathing f increases)
-breathing_pattern;  {PATTERN}
+
+
+cycle_time;						REAL
 support;							{POS}
+
+
+
+
+
+
+%chest_pos;            {POS}
+%chest_change;         BOOLEAN
+%breathing_acc;	      REAL
+%	%acceleration of the breathing f
+%	%(thus the amount the breathing f increases)
+%breathing_pattern;  {PATTERN}
+
 
 
 
