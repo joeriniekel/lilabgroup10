@@ -709,6 +709,10 @@ function result = cycle_time( model, trace, parameters, t )
   % when user should breathe in:  cycle_time = positive
   % when user should breathe out: cycle_time = negative
   % cycle_time is never 0
+
+  %if assessment(t) = false and assessment(t+1) = true
+  %   cycle time = 'phi'
+
   prev_ct = trace(t).cycle_time.arg{1};
   bf      = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
   dt  = model.parameters.default.dt;
