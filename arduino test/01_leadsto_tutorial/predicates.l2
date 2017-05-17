@@ -1,0 +1,5 @@
+goes_to_p2;					BOOLEAN			
+observes_food_at_p2;		BOOLEAN
+observes_no_screen;			BOOLEAN
+lightvalue;                 REAL
+light;                      SWITCH

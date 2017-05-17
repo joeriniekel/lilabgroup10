@@ -4,8 +4,7 @@ clc
 disp('Running model...')
 model = l2('model');tic
 n = 50;
-% global ard2;
-% ard2 = 4;
+global ard
 %model.simulate(n, 'COM3');
 model.simulate(n,'default','default');
 disp('Simulation finished');

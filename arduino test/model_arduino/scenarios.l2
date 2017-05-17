@@ -1,0 +1,3 @@
+default (
+    lightvalue{rtinput_lightsensor}; [1:Inf]
+)
