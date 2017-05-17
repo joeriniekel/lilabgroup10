@@ -382,32 +382,32 @@ function result = bel_breathing_f( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('breathing_f', breathing_f)};
 end
 
-% %new
-% function result = bel_relative_c( model, trace, parameters, t )
-%   %the previous value of chest_c, relative to the used chest_range
-%   chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
-%   min          = model.parameters.default.min_chest_c; % believed min
-%   max          = model.parameters.default.max_chest_c; % believed max
-%   %todo param adaption gebruiken voor min en max?
-%   range = max - min;
-%   A = range / 2;
-%   avg_chest_c = min + A;            % 70
-%
-%   relative_c = (chest_c - avg_chest_c) / A;
-%     % value is in range [-1,1], except when the range changes between different points in time
-%   if      relative_c >  1, relative_c =  1;
-%   elseif  relative_c < -1, relative_c = -1;  end;
-%
-%   %ffor param adaption...
-%   if chest_c > max - 0.5
-%     relative_c = 1;
-%   elseif chest_c < min + 0.5
-%     relative_c = -1;
-%   end
-%
-%   result = {t+1, 'belief', predicate('relative_c',relative_c)};
-% end
-% %new
+%new
+function result = bel_relative_c( model, trace, parameters, t )
+  %the previous value of chest_c, relative to the used chest_range
+  chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+  min          = model.parameters.default.min_chest_c; % believed min
+  max          = model.parameters.default.max_chest_c; % believed max
+  %todo param adaption gebruiken voor min en max?
+  range = max - min;
+  A = range / 2;
+  avg_chest_c = min + A;            % 70
+
+  relative_c = (chest_c - avg_chest_c) / A;
+    % value is in range [-1,1], except when the range changes between different points in time
+  if      relative_c >  1, relative_c =  1;
+  elseif  relative_c < -1, relative_c = -1;  end;
+
+  %ffor param adaption...
+  if chest_c > max - 0.5
+    relative_c = 1;
+  elseif chest_c < min + 0.5
+    relative_c = -1;
+  end
+
+  result = {t+1, 'belief', predicate('relative_c',relative_c)};
+end
+%new
 
 % %new
 % function result = bel_phase_shift( model, trace, parameters, t )
@@ -710,25 +710,46 @@ function result = cycle_time( model, trace, parameters, t )
   % when user should breathe out: cycle_time = negative
   % cycle_time is never 0
 
-  %if assessment(t) = false and assessment(t+1) = true
-  %   cycle time = 'phi'
+
+  % when user should breathe in:  cycle_time = positive
+  % when user should breathe out: cycle_time = negative
+  % cycle_time is never 0
+
   prev_ct = trace(t).cycle_time.arg{1};
+  prev_assessment = trace(t).assessment.arg{1};
+  assessment = trace(t+1).assessment.arg{1};
+  relative_c = l2.getall(trace, t+1, 'belief', predicate('relative_c', NaN)).arg{1}.arg{1};
+  starting_dir = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
   bf      = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
   dt  = model.parameters.default.dt;
   max_cycle_time = 1/bf * 1/dt; % 1/0.5 * 1/0.1 = 20
+  
+  % when the assessment has changed to 'true';  cycle_time will be equal to the relative chest_c
+  if ~prev_assessment && assessment
+    % cycle_time = 'phase/relative_c'
+    if strcmp(starting_dir,'1 in')
+      dir = 1;
+    else
+      dir = -1;
+    end
+    %wat is relative c?
+    cycle_time = dir * relative_c * max_cycle_time;
+  else
+    %cycle_time++, except when max or min is reached
+    if prev_ct > 0 % 'in'
+      if prev_ct < 0.5 * max_cycle_time % between 0 and 10
+        cycle_time = prev_ct + 1;
+      else
+        cycle_time = -1;
+      end
+    else % 'out'
+      if prev_ct > -0.5 * max_cycle_time % between -10 and 0
+        cycle_time = prev_ct - 1;
+      else
+        cycle_time = 1;
+      end
+    end
 
-  if prev_ct > 0 % 'in'
-    if prev_ct < 0.5 * max_cycle_time % between 0 and 10
-      cycle_time = prev_ct + 1;
-    else
-      cycle_time = -1;
-    end
-  else % 'out'
-    if prev_ct > -0.5 * max_cycle_time % between -10 and 0
-      cycle_time = prev_ct - 1;
-    else
-      cycle_time = 1;
-    end
   end
   result = {t+1, 'cycle_time', cycle_time};
 end
