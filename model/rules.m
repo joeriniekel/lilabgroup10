@@ -710,6 +710,20 @@ function result = cycle_time( model, trace, parameters, t )
   % when user should breathe out: cycle_time = negative
   % cycle_time is never 0
 
+
+  % when user should breathe in:  cycle_time = positive
+  % when user should breathe out: cycle_time = negative
+  % cycle_time is never 0
+
+  %if assessment(t) = false and assessment(t+1) = true
+  %   cycle time = 'phi'
+  prev_assessment = trace(t).assessment.arg{1};
+  assessment = trace(t+1).assessment.arg{1};
+
+
+
+
+
   %if assessment(t) = false and assessment(t+1) = true
   %   cycle time = 'phi'
   prev_ct = trace(t).cycle_time.arg{1};
