@@ -36,6 +36,7 @@ default (
   phase_shift{0};             [1]
   cycle_time{1};              [1]
   support{4 none};            [1:2]
+  hr_pos{0};                  [1]
   %mind{4 none};               [1]
 
 
