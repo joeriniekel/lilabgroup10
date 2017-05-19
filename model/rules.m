@@ -5,6 +5,10 @@ function [ fncs ] = rules()    % DO NOT EDIt
     end
 end
 
+%todo:
+% dt 'vastzetten' op e.g. dt = 0.19
+
+
 % start t=0 with tic
 % before going to t=1, check tic. Two options
 % (1) if tac < dt, pause( dt - tac ); else, disp('taking too much time') (or raise dt)
@@ -76,8 +80,24 @@ function result = hr( model, trace, parameters, t )
 
   hr = (bhr + ps) + (a * anxiety) + var;
   if hr < lhr, hr = lhr; disp('lhr reached!'); end;
+
+  global training_hr;
+  if training_hr,    hr = 0;  end;
   result = {t+1, 'hr', hr};
 end
+
+function result = hr_pos( model, trace, parameters, t )
+  %the 'input-current'
+  global TRAINING;
+  if TRAINING
+    global TRAINING_HR
+    pos = TRAINING_HR(t);
+  else
+    pos = 0;
+  end
+  result = {t+1, 'hr_pos', pos};
+end
+
 
 function result = breathing_f( model, trace, parameters, t )
   % between 0 and 4 (params.high_bf)
@@ -89,6 +109,10 @@ function result = breathing_f( model, trace, parameters, t )
 
   hr = hr_bpm / 60; % in s-1
   breathing_f = h * hr + (a2 * anxiety);
+
+  global TRAINING;
+  if TRAINING,    breathing_f = 0;  end; %bypass the domain model
+
   result = {t+1, 'breathing_f', breathing_f};
 end
 
@@ -137,6 +161,20 @@ function result = chest_c( model, trace, parameters, t )
   elseif strcmp(dir,'2 rest')
     curr_chest_c = chest_c;
   end
+
+  % new
+  global TRAINING;
+  global TRAINING_BF;
+  if TRAINING,    curr_chest_c = TRAINING_BF(t)^2 * 10 + 50;  end;
+
+  % real time graphs
+  global CHEST_Y1 RT_CHEST1 %CHEST_Y2  RT_CHEST2
+  CHEST_Y1(1) = [];
+  curr_chest_c
+  CHEST_Y1(end+1) = curr_chest_c - 50;
+  % CHEST_Y2(end+1) = curr_chest_c;
+  refreshdata(RT_CHEST1);
+  % refreshdata(RT_CHEST2);
 
   result = {t+1, 'chest_c', curr_chest_c};
 end
@@ -270,18 +308,16 @@ end
 
 function result = obs_hr( model, trace, parameters, t )
   hr = trace(t+1).hr.arg{1};
-  %dt...
   result = {t+1, 'observe', predicate('hr',hr)};
+end
+function result = obs_hr_pos( model, trace, parameters, t )
+  pos = trace(t+1).hr_pos.arg{1};
+  result = {t+1, 'observe', predicate('hr_pos',pos)};
 end
 
 function result = obs_chest_c( model, trace, parameters, t )
   chest_c = trace(t+1).chest_c.arg{1};
   result = {t+1, 'observe', predicate('chest_c',chest_c)};
-end
-
-function result = bel_hr( model, trace, parameters, t )
-  hr = l2.getall(trace, t+1, 'observe', predicate('hr', NaN)).arg{1}.arg{1};
-  result = {t+1, 'belief', predicate('hr',hr)};
 end
 
 function result = bel_chest_c( model, trace, parameters, t )
@@ -383,6 +419,96 @@ function result = bel_breathing_f( model, trace, parameters, t )
 end
 
 %new
+<<<<<<< HEAD
+function result = bel_hr_pos( model, trace, parameters, t )
+  hr_pos = trace(t+1).hr_pos.arg{1};
+  result = {t+1, 'belief', predicate('hr_pos',hr_pos)};
+end
+
+%new
+function result = bel_hr( model, trace, parameters, t )
+  global training
+  if ~training
+    hr = l2.getall(trace, t+1, 'observe', predicate('hr', NaN)).arg{1}.arg{1};
+  else
+    % calculate the believed heart rate
+    % this function functions the same as bel_breathing_f
+    % search backwards; search until enough cycles are found
+    n_cycles = model.parameters.default.n_hr_cycles;
+    dt  = model.parameters.default.dt;
+    max = 1/dt * model.parameters.default.max_interval_t; % same as bel bf
+    floor = 1.0;
+
+    % v will be a vector/list containing 1s and 0s that indicate starting points of breathing cycles.
+    v = [];
+    a = t;
+    mode = [];
+    count = 1;          % matlab starts counting at 1 instead of 0
+    prev_val = l2.getall(trace, a+1, 'belief', predicate('hr_pos', NaN)).arg{1}.arg{1};
+
+    if t <= n_cycles*2  % a minimum of n*2+1 time steps are required (in+out+...+next_in)
+      hr = 0;
+      disp('Waiting - collecting data (hr)')
+      if t==n_cycles*2, disp('  Go  -->');disp('Searching for heart beats...');end; %last wait
+    else
+      while sum(v) <= n_cycles + 1  %the last interval will be cut off
+        val = l2.getall(trace, a, 'belief', predicate('hr_pos', NaN)).arg{1}.arg{1};
+        if val > floor % make the value binary
+          val = 1;
+        else
+          val = 0;
+        end
+
+        % modes:
+        % if last (newest) observation = 0; mode = 0
+        % if last (newest) observation > floor; mode = 1
+        if isempty(mode)
+          if val ~= prev_val
+            mode = val; % 1 or 2
+            v = [1];
+            t_end = a;
+          end
+        else %mode == 1 or 2
+          count = count + 1;
+          if val ~= prev_val
+            if mode == val
+              v(count) = 1;
+            else
+              v(count) = 0;
+            end
+          else
+            v(count) = 0;
+          end
+        end
+        a = a - 1;
+        prev_val = val;
+        if a <= 1,      break; end; %break at t1
+        if count>max,   break; end; %break when max timesteps has been searched
+      end % end of while loop
+
+      % Now determine the interval size + number of breathing cycles
+      if sum(v) < 2
+        hr = 0;
+        if t > 6/dt, disp('no beats found'); end;
+      else
+        %same as bel bf
+        index = length(v) - find(fliplr(v)==1,1);
+        v2 = v(1:index);
+        n = sum(v2);
+        hr = (n / index) / dt; % in Hz
+        hr = hr * 60; % in bpm
+      end
+    end
+
+  end
+  result = {t+1, 'belief', predicate('hr',hr)};
+end
+
+% bel breathing intensity
+
+
+
+% %new
 function result = bel_relative_c( model, trace, parameters, t )
   %the previous value of chest_c, relative to the used chest_range
   chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
@@ -495,15 +621,15 @@ function result = bel_anxiety( model, trace, parameters, t )
   margin = 0;
 
   if bf > h * hr - margin
-    anxiety = 100 * (bf - h * hr) + prev_anxiety * decay
+    anxiety = 100 * (bf - h * hr) + prev_anxiety * decay;
     % anxiety = 10 * d_bf + prev_anxiety * decay;
   elseif d_hr > floor_hr
     % if hr is raised (by the physical state) anxiety cannot determined
     % thus it will stay at the same level
     anxiety = prev_anxiety;
-    disp('c1')
+    % disp('c1')
   elseif d_bf > floor_bf
-    disp('c2')
+    % disp('c2')
     anxiety = 10 * d_bf + prev_anxiety * decay;
   else
     % disp('c3')
@@ -710,10 +836,8 @@ function result = cycle_time( model, trace, parameters, t )
   % when user should breathe out: cycle_time = negative
   % cycle_time is never 0
 
-
-  % when user should breathe in:  cycle_time = positive
-  % when user should breathe out: cycle_time = negative
-  % cycle_time is never 0
+  %if assessment(t) = false and assessment(t+1) = true
+  %   cycle time = 'relative_c'/100 * max_cycle_time
 
   prev_ct = trace(t).cycle_time.arg{1};
   prev_assessment = trace(t).assessment.arg{1};
@@ -723,7 +847,7 @@ function result = cycle_time( model, trace, parameters, t )
   bf      = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
   dt  = model.parameters.default.dt;
   max_cycle_time = 1/bf * 1/dt; % 1/0.5 * 1/0.1 = 20
-  
+
   % when the assessment has changed to 'true';  cycle_time will be equal to the relative chest_c
   if ~prev_assessment && assessment
     % cycle_time = 'phase/relative_c'
@@ -857,6 +981,10 @@ end
 
 % Breathing_f and heart rate
 
+function result = graph_bel_hr( model, trace, parameters, t )
+  bf = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_bel_hr', bf};
+end
 function result = graph_bel_breathing_f( model, trace, parameters, t )
   bf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_bel_breathing_f', bf};
