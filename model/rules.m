@@ -419,7 +419,6 @@ function result = bel_breathing_f( model, trace, parameters, t )
 end
 
 %new
-<<<<<<< HEAD
 function result = bel_hr_pos( model, trace, parameters, t )
   hr_pos = trace(t+1).hr_pos.arg{1};
   result = {t+1, 'belief', predicate('hr_pos',hr_pos)};
@@ -524,7 +523,7 @@ function result = bel_relative_c( model, trace, parameters, t )
   if      relative_c >  1, relative_c =  1;
   elseif  relative_c < -1, relative_c = -1;  end;
 
-  %ffor param adaption...
+  %for param adaption...
   if chest_c > max - 0.5
     relative_c = 1;
   elseif chest_c < min + 0.5
