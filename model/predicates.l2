@@ -29,7 +29,6 @@ phase_shift;					REAL
 starting_dir;         {POS}
 
 % ANALYSIS MODEL
-hr_pos;               REAL
 original_hr;					REAL
 d_hr;									REAL
 d_bf;									REAL
@@ -60,7 +59,7 @@ support;							{POS}
 
 % Graphs
 % ANALYSIS
-graph_bel_hr;							REAL
+graph_hr;									REAL
 graph_bel_starting_dir;		{POS}
 graph_bel_breathing_f;    REAL
 graph_breathing_f_error;  REAL
