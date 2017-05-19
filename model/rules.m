@@ -664,6 +664,26 @@ function result = bel_anxiety( model, trace, parameters, t )
   h       = model.parameters.default.hr_breathing;
   margin = 0;
 
+  if onreglmatige d_intensity
+  if onregelmatige d_bf
+    anxiety = high
+  elseif breathing intensity < hr * x
+    anxiety = fairly high
+  else
+    anxiety = unknown
+  end
+
+  % d_bf + d_hr - komt door physical activity
+  if d_bf + d_hr
+    anxiety = unknown
+  elseif d_bf && ~d_hr
+    anxiety = high
+  end
+
+
+
+
+
   if bf > h * hr - margin
     anxiety = 100 * (bf - h * hr) + prev_anxiety * decay;
     % anxiety = 10 * d_bf + prev_anxiety * decay;
