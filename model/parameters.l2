@@ -31,7 +31,7 @@
 
 default (
 
-  dt;                 0.4
+  dt;                 0.18
   bhr;                90
   lhr;                50
   max_chest_c;        80
@@ -55,16 +55,20 @@ default (
 
 
   % ANALYSIS MODEL
-  chest_c_margin;     0.05
+  chest_c_margin;     0.25
   breathing_dir_mode; 1
   d_hr_decay;         0
   d_bf_decay;         0
 
-  %breathing f
+  % breathing f
   n_breathing_cycles; 3;
   max_interval_t;     120;
   floor_hr;           15;
   floor_bf;           0.05;
+  % hr
+  n_hr_cycles; 3;
+
+
 
   %acc_interval;       5
   %acc_margin;         0.01
