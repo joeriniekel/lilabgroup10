@@ -1,0 +1,6 @@
+default (
+
+    b2{rtinput_bsensor};    [1:Inf]
+    hr2{rtinput_hrsensor};  [1:Inf]
+    lightvalue{rtinput_lightsensor}; [1:Inf]
+)
