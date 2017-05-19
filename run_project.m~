@@ -3,35 +3,8 @@ close all
 clc
 disp('Running model...')
 model = l2('model');tic
-n = 150;
-global TRAINING TRAINING_BF TRAINING_HR
-c1_bf = csvread('data/17-05 conditie 1 rust/bb_v69.csv');%499
-c1_hr = csvread('data/17-05 conditie 1 rust/hr_v69.csv');
-c2_bf = csvread('data/17-05 conditie 2 sport/bb_v81.csv');
-c2_hr = csvread('data/17-05 conditie 2 sport/hr_v81.csv');
-c3_bf = csvread('data/17-05 conditie 3 angst/bb_v32.csv');
-c3_hr = csvread('data/17-05 conditie 3 angst/hr_v32.csv');
-%als deze worden gebruikt worden de domein-waardes genegeerd
-% dt = 0.18;
-TRAINING = true;
-TRAINING_BF = c1_bf;
-TRAINING_HR = c1_hr;
-
-% global RT_CHEST YY
-% x = linspace(0,8);
-% YY = sin(x);
-% RT_CHEST = plot(x,YY);
-% h.XDataSource = 'x';
-% h.YDataSource = 'YY';
-% linkdata on
-global CHEST_Y1 CHEST_Y2 RT_CHEST1 % RT_CHEST2 SHORT_T
-CHEST_Y1 = zeros([1,50]); % CHEST_Y2 = [0]; subplot(1,2,2); 
-RT_CHEST1 = stem(CHEST_Y1);linkdata on
-RT_CHEST1 = stem(CHEST_Y1);linkdata on
-% subplot(1,2,1); RT_CHEST2 = plot(CHEST_Y2);linkdata on
-
-
-
+n = 50;
+global ard
 %model.simulate(n, 'COM3');
 model.simulate(n,'default','default');
 disp('Simulation finished');
@@ -42,7 +15,6 @@ model.plot({'sitfac','anxiety_regulation','anxiety',...
 	,'phase_shift','chest_c','starting_dir'...
     ,'graph_bel_starting_dir'...
     ,'performance'...
-    ,'graph_bel_hr'...
     ,'graph_bel_breathing_f','graph_breathing_f_error'...
     ,'graph_bel_anxiety','assessment'...
     ,'graph_bel_prev_ps','graph_original_hr'...
