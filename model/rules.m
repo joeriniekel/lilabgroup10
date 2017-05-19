@@ -8,6 +8,32 @@ end
 %todo:
 % dt 'vastzetten' op e.g. dt = 0.19
 
+% adaptiemodel
+% max en min zijn parameters, maar worden dus aangepast
+
+% weerstand kan veranderen
+% adaptiemodel kijkt naar de min en max chest_c en past aan de hand daarvan de formule
+% voor de chest_c current naar chest_c in cm aan
+% dus max chest_c is misschien 80cm
+% max = 80cm; min = 70cm;
+% chest_range = 10cm
+% spanningsverschil wordt geobserveerd
+% standaardformule: chest_c = (voltage^2 - a) * b
+  % range voltage = max - min
+  % neemt de weerstand kwadratisch toe?
+  % a = minimum voltage (geen rek)
+  % b = 'relatieve rek'
+  %   b = range chest_c in cm / range voltage
+
+
+% of regel bij min voltage
+% if voltage < min_voltage
+%   min_voltage = voltage - 0.01
+% idem voor max
+% op deze manier kan je instellen op 0 en gaan ze vanzelf goed staan
+% mits de user 1x diep in en uitademt
+
+
 
 % start t=0 with tic
 % before going to t=1, check tic. Two options
@@ -409,9 +435,8 @@ function result = bel_breathing_f( model, trace, parameters, t )
       %      lenght(interval) = 4
       %      n                = sum(used interval)
       index = length(v) - find(fliplr(v)==1,1);
-      v2 = v(1:index);
-      n = sum(v2);
-      breathing_f = (n / index) / dt; %new: * 1/dt
+      v2 = v(1:index);      % n = sum(v2);
+      breathing_f = mean(v2) / dt; %new: * 1/dt
     end
   end
   result = {t+1, 'belief', predicate('breathing_f', breathing_f)};
@@ -456,7 +481,6 @@ function result = bel_hr( model, trace, parameters, t )
         else
           val = 0;
         end
-
         % modes:
         % if last (newest) observation = 0; mode = 0
         % if last (newest) observation > floor; mode = 1
@@ -489,12 +513,11 @@ function result = bel_hr( model, trace, parameters, t )
         hr = 0;
         if t > 6/dt, disp('no beats found'); end;
       else
-        %same as bel bf
+        % same as bel bf
+        % remove partial intervals at the end
         index = length(v) - find(fliplr(v)==1,1);
-        v2 = v(1:index);
-        n = sum(v2);
-        hr = (n / index) / dt; % in Hz
-        hr = hr * 60; % in bpm
+        v2 = v(1:index);        % n = sum(v2);
+        hr = mean(v2) / dt * 60; % in bpm
       end
     end
 
@@ -578,7 +601,29 @@ end
 %   result = {t+1, 'belief', predicate('phase_shift',phi)};
 % end
 % %new
+function result = bel_d_chest_c( model, trace, parameters, t )
+  prev_c = l2.getall(trace, t, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+  c      = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+  result = {t+1, 'belief', predicate('d_chest_c', c - prev_c)};
+end
+%new
+function result = bel_avg_d_chest_c( model, trace, parameters, t )
+  interval = 15;
+  count = 0;
+  v = [];
+  if interval+1 > t, interval = t-1;end;
+  for i=t:-1:t - interval
+    count = count + 1;
+    val = l2.getall(trace, i, 'belief', predicate('d_chest_c', NaN)).arg{1}.arg{1};
+    v(count) = val;
+  end
+  % avg = mean(v);
+  avg = 2;
+  result = {t+1, 'belief', predicate('avg_d_chest_c', avg)};
+end
 
+
+% %new
 function result = bel_d_hr( model, trace, parameters, t )
   prev_d  = l2.getall(trace, t, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
   prev_hr = l2.getall(trace, t, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
@@ -609,8 +654,9 @@ function result = bel_anxiety( model, trace, parameters, t )
   prev_anxiety = l2.getall(trace, t, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
   bf    = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   hr    = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-  d_bf  = l2.getall(trace, t+1, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
+  % d_bf  = l2.getall(trace, t+1, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
   d_hr  = l2.getall(trace, t+1, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
+  d_bf = 0;
   decay    = model.parameters.default.anxiety_decay;
   floor_hr = model.parameters.default.floor_hr;
   floor_bf = model.parameters.default.floor_bf;
