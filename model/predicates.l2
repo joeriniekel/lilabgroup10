@@ -31,6 +31,8 @@ starting_dir;         {POS}
 % ANALYSIS MODEL
 hr_pos;               REAL
 original_hr;					REAL
+d_chest_c;            REAL
+avg_d_chest_c;        REAL
 d_hr;									REAL
 d_bf;									REAL
 assessment;						BOOLEAN

@@ -578,17 +578,38 @@ end
 %   result = {t+1, 'belief', predicate('phase_shift',phi)};
 % end
 % %new
-
-function result = bel_d_hr( model, trace, parameters, t )
-  prev_d  = l2.getall(trace, t, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
-  prev_hr = l2.getall(trace, t, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-  hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-  % laat verschil van t-1 ook meetellen: een stijging kan over meerdere tijdstappen plaatsvinden
-  decay   = model.parameters.default.d_hr_decay;
-
-  d = hr - prev_hr + prev_d * decay;
-  result = {t+1, 'belief', predicate('d_hr', d)};
+function result = bel_d_chest_c( model, trace, parameters, t )
+  prev_c = l2.getall(trace, t, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+  c      = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+  result = {t+1, 'belief', predicate('d_chest_c', c - prev_c)};
 end
+%new
+function result = bel_avg_d_chest_c( model, trace, parameters, t )
+  interval = 15;
+  count = 0;
+  v = [];
+  if interval > t, interval = t;end;
+  for i=t-1:t - interval
+    count = count + 1;
+    val = l2.getall(trace, t, 'belief', predicate('d_chest_c', NaN)).arg{1}.arg{1};
+    v(count) = val;
+  end
+  avg = mean(v);
+  result = {t+1, 'belief', predicate('avg_d_chest_c', avg)};
+end
+
+
+% %new
+% function result = bel_d_hr( model, trace, parameters, t )
+%   prev_d  = l2.getall(trace, t, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
+%   prev_hr = l2.getall(trace, t, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+%   hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+%   % laat verschil van t-1 ook meetellen: een stijging kan over meerdere tijdstappen plaatsvinden
+%   decay   = model.parameters.default.d_hr_decay;
+%
+%   d = hr - prev_hr + prev_d * decay;
+%   result = {t+1, 'belief', predicate('d_hr', d)};
+% end
 
 function result = bel_d_bf( model, trace, parameters, t )
   prev_d  = l2.getall(trace, t, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
@@ -609,8 +630,9 @@ function result = bel_anxiety( model, trace, parameters, t )
   prev_anxiety = l2.getall(trace, t, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
   bf    = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   hr    = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-  d_bf  = l2.getall(trace, t+1, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
+  % d_bf  = l2.getall(trace, t+1, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
   d_hr  = l2.getall(trace, t+1, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
+  d_bf = 0;
   decay    = model.parameters.default.anxiety_decay;
   floor_hr = model.parameters.default.floor_hr;
   floor_bf = model.parameters.default.floor_bf;
