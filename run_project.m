@@ -29,7 +29,7 @@ CHEST_Y1 = zeros([1,100]); % CHEST_Y2 = [0]; subplot(1,2,2);
 RT_CHEST1 = stem(CHEST_Y1);linkdata on
 % RT_CHEST1 = plot(CHEST_Y1);linkdata on
 % subplot(1,2,1); RT_CHEST2 = plot(CHEST_Y2);linkdata on
-
+% refreshdata(RT_CHEST1);
 
 
 %model.simulate(n, 'COM3');
