@@ -12,30 +12,31 @@ erl;	REAL
 v2;		REAL
 
 % DOMAIN MODEL
-anxiety;              REAL
-anxiety_regulation;   REAL
-sitfac;               REAL
-hr;                   REAL
-hr_var;								REAL
-breathing_f;          REAL
-ps;       						REAL
-performance;          REAL
-breathing_intensity;  REAL
-used_chest_range;     REAL
-chest_c;              REAL
-mind;									{POS}
-relative_c;						REAL
-phase_shift;					REAL
-starting_dir;         {POS}
+anxiety;            REAL
+anxiety_regulation; REAL
+sitfac;             REAL
+hr;                 REAL
+hr_var;							REAL
+breathing_f;        REAL
+ps;       					REAL
+performance;        REAL
+br_intensity;  			REAL
+dispos_br_i;				REAL
+used_chest_range;   REAL
+chest_c;            REAL
+mind;								{POS}
+relative_c;					REAL
+phase_shift;				REAL
+starting_dir;       {POS}
 
 % ANALYSIS MODEL
-hr_pos;               REAL
-original_hr;					REAL
-d_chest_c;            REAL
-avg_d_chest_c;        REAL
-d_hr;									REAL
-d_bf;									REAL
-assessment;						BOOLEAN
+hr_pos;             REAL
+original_hr;				REAL
+d_chest_c;          REAL
+avg_d_chest_c;      REAL
+d_hr;								REAL
+d_bf;								REAL
+assessment;					BOOLEAN
 
 
 

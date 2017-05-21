@@ -5,6 +5,11 @@ function [ fncs ] = rules()    % DO NOT EDIt
     end
 end
 
+
+% chest_c in cm = voltage * 10 + 50?
+% of logaritmisch?
+
+
 %todo:
 % dt 'vastzetten' op e.g. dt = 0.19
 
@@ -123,27 +128,23 @@ function result = hr_pos( model, trace, parameters, t )
   result = {t+1, 'hr_pos', pos};
 end
 
-
+%new
 function result = breathing_f( model, trace, parameters, t )
   % between 0 and 4 (params.high_bf)
   hr_bpm  = trace(t+1).hr.arg{1};
   anxiety = trace(t+1).anxiety.arg{1};
-  h       = model.parameters.default.hr_breathing;
-  % h2      = model.parameters.default.hr_breathing_exp;
-  a       = model.parameters.default.bf_a;
-  b       = model.parameters.default.bf_b;
-  c       = model.parameters.default.bf_c;
-
   a2      = model.parameters.default.anxiety_bf;
+  %h       = model.parameters.default.hr_breathing;
+  % h2      = model.parameters.default.hr_breathing_exp;
+  lhr     = model.parameters.default.lhr;
+  a       = model.parameters.default.default_a;
+  b       = model.parameters.default.default_b;
+  c       = model.parameters.default.default_c;
 
   hr = hr_bpm / 60; % in s-1
-  breathing_f = h * hr + (a2 * anxiety);
+  % breathing_f = a*hr.^2 + b*hr + c + (a2 * anxiety);
+  breathing_f = a*(hr-lhr).^2 + b*(hr-lhr) + c + (a2 * anxiety);
 
-  % breathing_f = a*hr^2 + b*hr + c + (a2 * anxiety);;
-  % global PLOT_BF HR_AXIS BF_AXIS PA PB PC PX
-  % PA = PA+0.1;
-  % BF_AXIS = PA*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
-  % refreshdata(PLOT_BF)
 
   global TRAINING;
   if TRAINING,    breathing_f = 0;  end; %bypass the domain model
@@ -151,12 +152,25 @@ function result = breathing_f( model, trace, parameters, t )
   result = {t+1, 'breathing_f', breathing_f};
 end
 
+%new
+function result = br_intensity( model, trace, parameters, t )
+  % range = [0;1]
+  dispos = trace(t).dispos_br_i.arg{1};  %t+1 doesn't work for scenario predicates
+  anxiety = trace(t+1).anxiety.arg{1};  
+  a = model.parameters.default.anxiety_br_i;
+
+  br_intensity = dispos - a * anxiety;      % e.g. 0.9 - 0.5 = 0.4 = 40%
+  if br_intensity < 0, br_intensity = 0;  end;
+  result = {t+1, 'br_intensity', br_intensity};
+end
+
+%new
 function result = used_chest_range( model, trace, parameters, t )
   % range = [0;1]
-  % if higher than 1; subject is breathing moreintensely than healthy
-  br_intensity = trace(t).breathing_intensity.arg{1};  %t+1 doesn't work for scenario predicates
+  % if higher than 1; subject is breathing more intensely than healthy
+  br_intensity = trace(t+1).br_intensity.arg{1};  %t+1 doesn't work for scenario predicates
+  
   max = model.parameters.default.max_chest_range;
-
   used_chest_range = max * br_intensity;
   result = {t+1, 'used_chest_range', used_chest_range};
 end
@@ -175,7 +189,6 @@ function result = chest_c( model, trace, parameters, t )
   A = range / 2;
   % y(t) = A sin(2 pi f t dt + phi)
   curr_chest_c = A * sin(2*pi* f * dt + phi) + avg_chest_c;
-
 
   %new
   % assume that user always listens to support
@@ -201,6 +214,8 @@ function result = chest_c( model, trace, parameters, t )
   global TRAINING;
   global TRAINING_BF;
   if TRAINING,    curr_chest_c = TRAINING_BF(t)^2 * 10 + 50;  end;
+    %todo deze formula uitleggen of uitwerken
+
 
   % real time graphs
   global CHEST_Y1 PLOT_CHEST1  %CHEST_Y2  RT_CHEST2
@@ -536,35 +551,53 @@ function result = bel_hr( model, trace, parameters, t )
 end
 
 % bel breathing intensity
+function result = bel_used_chest_range( model, trace, parameters, t )
+  min       = model.parameters.default.min_chest_c; % believed min
+  max       = model.parameters.default.max_chest_c; % believed max
+  time      = model.parameters.default.chest_range_time;
+  max_range = max - min;
+  highest   = 0;
+  lowest    = inf;
+  if time>t,time=t;end;
+
+  for i=t+1:-1:t+1-time
+    chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+    if chest_c > highest, highest = chest_c;end;
+    if chest_c < lowest,  lowest  = chest_c;end;
+  end
+
+  used_range = highest - lowest;
+  relative_range = used_range / max_range;
+  result = {t+1, 'belief', predicate('used_chest_range',used_range)};
+end
 
 
 
-% %new
-% function result = bel_relative_c( model, trace, parameters, t )
-%   %the previous value of chest_c, relative to the used chest_range
-%   chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
-%   min          = model.parameters.default.min_chest_c; % believed min
-%   max          = model.parameters.default.max_chest_c; % believed max
-%   %todo param adaption gebruiken voor min en max?
-%   range = max - min;
-%   A = range / 2;
-%   avg_chest_c = min + A;            % 70
-%
-%   relative_c = (chest_c - avg_chest_c) / A;
-%     % value is in range [-1,1], except when the range changes between different points in time
-%   if      relative_c >  1, relative_c =  1;
-%   elseif  relative_c < -1, relative_c = -1;  end;
-%
-%   %ffor param adaption...
-%   if chest_c > max - 0.5
-%     relative_c = 1;
-%   elseif chest_c < min + 0.5
-%     relative_c = -1;
-%   end
-%
-%   result = {t+1, 'belief', predicate('relative_c',relative_c)};
-% end
-% %new
+%new
+function result = bel_relative_c( model, trace, parameters, t )
+  % the previous value of chest_c,
+  % independent from the breathing intensity
+  %  ?relative to the used chest_range
+  chest_c     = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+  min         = model.parameters.default.min_chest_c; % believed min
+  max         = model.parameters.default.max_chest_c; % believed max
+  range       = max - min;
+  A           = range / 2;
+  avg_chest_c = min + A;            % 70
+  relative_c = (chest_c - avg_chest_c) / A;
+    % value is in range [-1,1], except when the range changes between different points in time
+  if      relative_c >  1, relative_c =  1;
+  elseif  relative_c < -1, relative_c = -1;  end;
+
+  if chest_c > max - 0.5
+    relative_c = 1;
+  elseif chest_c < min + 0.5
+    relative_c = -1;
+  end
+
+  result = {t+1, 'belief', predicate('relative_c',relative_c)};
+end
+%new
 
 % %new
 % function result = bel_phase_shift( model, trace, parameters, t )
@@ -662,16 +695,30 @@ function result = bel_anxiety( model, trace, parameters, t )
   %new
 
   prev_anxiety = l2.getall(trace, t, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
-  bf    = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  hr    = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+  bf      = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  hr_bpm  = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   % d_bf  = l2.getall(trace, t+1, 'belief', predicate('d_bf', NaN)).arg{1}.arg{1};
-  d_hr  = l2.getall(trace, t+1, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
+  d_hr    = l2.getall(trace, t+1, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
   d_bf = 0;
   decay    = model.parameters.default.anxiety_decay;
   floor_hr = model.parameters.default.floor_hr;
   floor_bf = model.parameters.default.floor_bf;
 
-  h       = model.parameters.default.hr_breathing;
+
+
+  lhr     = model.parameters.default.lhr;
+  a       = model.parameters.default.bf_a;
+  b       = model.parameters.default.bf_b;
+  c       = model.parameters.default.bf_c;
+
+  hr = hr_bpm / 60; % in s-1
+  expected_bf = a*(hr-lhr).^2 + b*(hr-lhr) + c;
+
+  used_chest_range = l2.getall(trace, t+1, 'belief', predicate('used_chest_range', NaN)).arg{1}.arg{1};
+
+
+  % h       = model.parameters.default.hr_breathing;
+  h = 0;
   margin = 0;
 
   % if onreglmatige d_intensity
@@ -850,9 +897,14 @@ end
 function result = des_bf( model, trace, parameters, t )
   % desired breathing_f without influence from anxiety.
   hr_bpm = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
-  h       = model.parameters.default.hr_breathing;
+  % h       = model.parameters.default.hr_breathing;
+  lhr     = model.parameters.default.lhr;
+  a       = model.parameters.default.bf_a;
+  b       = model.parameters.default.bf_b;
+  c       = model.parameters.default.bf_c;
+
   hr = hr_bpm / 60; % in s-1
-  breathing_f = h * hr;
+  breathing_f = a*(hr-lhr).^2 + b*(hr-lhr) + c;
 
   %testing:   this should determine the final bf of the user
   % breathing_f = 0.4;
@@ -901,7 +953,7 @@ end
 %
 
 %when to start cycle time? todo
-
+%new
 function result = cycle_time( model, trace, parameters, t )
   % we can just give support about breathing in or out (quantitative)
   % not exactly how deep (fast) to breathe (qualitative)
@@ -910,25 +962,33 @@ function result = cycle_time( model, trace, parameters, t )
   % when user should breathe out: cycle_time = negative
   % cycle_time is never 0
 
-  %if assessment(t) = false and assessment(t+1) = true
-  %   cycle time = 'relative_c'/100 * max_cycle_time
+
   prev_ct = trace(t).cycle_time.arg{1};
+  prev_as = trace(t).assessment.arg{1};
+  as      = trace(t+1).assessment.arg{1};
+  rel_c   = l2.getall(trace, t+1, 'belief', predicate('relative_c', NaN)).arg{1}.arg{1};
   bf      = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
   dt  = model.parameters.default.dt;
   max_cycle_time = 1/bf * 1/dt; % 1/0.5 * 1/0.1 = 20
 
-  if prev_ct > 0 % 'in'
-    if prev_ct < 0.5 * max_cycle_time % between 0 and 10
-      cycle_time = prev_ct + 1;
-    else
-      cycle_time = -1;
+  if assessment(t) == false and assessment(t+1) == true
+    cycle_time = rel_c * max_cycle_time;
+  else
+
+    if prev_ct > 0 % 'in'
+      if prev_ct < 0.5 * max_cycle_time % between 0 and 10
+        cycle_time = prev_ct + 1;
+      else
+        cycle_time = -1;
+      end
+    else % 'out'
+      if prev_ct > -0.5 * max_cycle_time % between -10 and 0
+        cycle_time = prev_ct - 1;
+      else
+        cycle_time = 1;
+      end
     end
-  else % 'out'
-    if prev_ct > -0.5 * max_cycle_time % between -10 and 0
-      cycle_time = prev_ct - 1;
-    else
-      cycle_time = 1;
-    end
+
   end
   result = {t+1, 'cycle_time', cycle_time};
 end
@@ -1037,6 +1097,8 @@ end
 %
 %
 
+%adaption min and max chest c
+
 function result = adaptions_hr_bf( model, trace, parameters, t )
   assessment = trace(t+1).assessment.arg{1};
   skip  = model.parameters.default.pa_skip_n_time_steps;
@@ -1045,11 +1107,11 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
     lhr   = model.parameters.default.lhr;
     time  = model.parameters.default.pa_time; % the review time
     s     = model.parameters.default.pa_speed;
-    a     = model.parameters.default.bf_a;
+    %a     = model.parameters.default.bf_a;
     b     = model.parameters.default.bf_b;
     c     = model.parameters.default.bf_c;
     % s = model.parameters.default.pa_speed;
-    if time > t-skip, time = t-skip;  end;
+    if time>t,time=t;end;
     hrs = [];
     bfs = [];
     for i=1:3
