@@ -44,7 +44,8 @@ cycle_time;						REAL
 support;							{POS}
 
 
-
+% PARAMETER ADAPTION MODEL
+adaption_1;           BOOLEAN
 
 
 

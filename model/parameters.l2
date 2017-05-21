@@ -49,6 +49,9 @@ default (
   anxiety_hr_var;     0.1
   hr_breathing;       0.08
     %0.08
+  bf_a;               0
+  bf_b;               0.08
+  bf_c;               0
   hr_breathing_exp;   1.0
   breathing_anxiety;  1.0
 
@@ -69,6 +72,10 @@ default (
   % hr
   n_hr_cycles; 3;
 
+  % PARAMETER ADAPTION MODEL
+  pa_speed;               0.1
+  pa_time;                50
+  pa_skip_n_time_steps;   10
 
 
   %acc_interval;       5

@@ -77,7 +77,6 @@ function result = anxiety( model, trace, parameters, t )
   decay         = model.parameters.default.anxiety_decay;
   disfac        = model.parameters.default.disfac;
   % Inf waardes geven errors... wachten op bugfix van linford
-  % sitfac        = trace(t).sitfac;
 
   anxiety = (disfac * sitfac + prev_anxiety * decay) * (1 - regulation);
   result = {t+1, 'anxiety', anxiety};
@@ -95,7 +94,7 @@ function result = hr_var( model, trace, parameters, t )
 end
 
 function result = hr( model, trace, parameters, t )
-  % in bpm, between 0 and 180
+  % in bpm, between 0 and 250
   % output = hr * dt
   ps      = trace(t).ps.arg{1}; % t+1 doesn't work with this syntax + scenario values
   var     = trace(t+1).hr_var.arg{1};
@@ -131,10 +130,20 @@ function result = breathing_f( model, trace, parameters, t )
   anxiety = trace(t+1).anxiety.arg{1};
   h       = model.parameters.default.hr_breathing;
   % h2      = model.parameters.default.hr_breathing_exp;
+  a       = model.parameters.default.bf_a;
+  b       = model.parameters.default.bf_b;
+  c       = model.parameters.default.bf_c;
+
   a2      = model.parameters.default.anxiety_bf;
 
   hr = hr_bpm / 60; % in s-1
   breathing_f = h * hr + (a2 * anxiety);
+
+  % breathing_f = a*hr^2 + b*hr + c + (a2 * anxiety);;
+  % global PLOT_BF HR_AXIS BF_AXIS PA PB PC PX
+  % PA = PA+0.1;
+  % BF_AXIS = PA*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
+  % refreshdata(PLOT_BF)
 
   global TRAINING;
   if TRAINING,    breathing_f = 0;  end; %bypass the domain model
@@ -194,11 +203,11 @@ function result = chest_c( model, trace, parameters, t )
   if TRAINING,    curr_chest_c = TRAINING_BF(t)^2 * 10 + 50;  end;
 
   % real time graphs
-  global CHEST_Y1 RT_CHEST1 %CHEST_Y2  RT_CHEST2
+  global CHEST_Y1 PLOT_CHEST1  %CHEST_Y2  RT_CHEST2
   CHEST_Y1(1) = [];
   CHEST_Y1(end+1) = curr_chest_c - 50;
   % CHEST_Y2(end+1) = curr_chest_c;
-  refreshdata(RT_CHEST1);
+  refreshdata(PLOT_CHEST1 ); %RT_CHEST1
   % refreshdata(RT_CHEST2);
 
   result = {t+1, 'chest_c', curr_chest_c};
@@ -236,6 +245,7 @@ function result = performance( model, trace, parameters, t )
   anxiety  = trace(t+1).anxiety.arg{1};
   performance = 100 - anxiety;
   if performance < 0, performance = 0;  end;
+    disp('performance')
   result = {t+1, 'performance', {performance}};
 end
 
@@ -640,7 +650,7 @@ function result = bel_d_bf( model, trace, parameters, t )
   prev_bf = l2.getall(trace, t, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   bf      = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   decay   = model.parameters.default.d_hr_decay;
-
+  disp('bel_d_bf')
   d = bf - prev_bf + prev_d * decay;
   result = {t+1, 'belief', predicate('d_bf', d)};
 end
@@ -664,21 +674,21 @@ function result = bel_anxiety( model, trace, parameters, t )
   h       = model.parameters.default.hr_breathing;
   margin = 0;
 
-  if onreglmatige d_intensity
-  if onregelmatige d_bf
-    anxiety = high
-  elseif breathing intensity < hr * x
-    anxiety = fairly high
-  else
-    anxiety = unknown
-  end
-
-  % d_bf + d_hr - komt door physical activity
-  if d_bf + d_hr
-    anxiety = unknown
-  elseif d_bf && ~d_hr
-    anxiety = high
-  end
+  % if onreglmatige d_intensity
+  % if onregelmatige d_bf
+  %   anxiety = high
+  % elseif breathing intensity < hr * x
+  %   anxiety = fairly high
+  % else
+  %   anxiety = unknown
+  % end
+  %
+  % % d_bf + d_hr - komt door physical activity
+  % if d_bf + d_hr
+  %   anxiety = unknown
+  % elseif d_bf && ~d_hr
+  %   anxiety = high
+  % end
 
 
 
@@ -999,6 +1009,95 @@ function result = support( model, trace, parameters, t )
   % if t == 1, starting_dir =  '4 none';end;
   % starting_dir =  '4 none';
   result = {t+1, 'support', {starting_dir}};
+end
+
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+% ---------------------------------------------------------------
+%
+%     PARAMETER ADAPTION
+%
+% ---------------------------------------------------------------
+%
+%
+%
+%
+
+function result = adaptions_hr_bf( model, trace, parameters, t )
+  assessment = trace(t+1).assessment.arg{1};
+  skip  = model.parameters.default.pa_skip_n_time_steps;
+  %skip the first 10 timesteps
+  if ~assessment && t>3+skip
+    lhr   = model.parameters.default.lhr;
+    time  = model.parameters.default.pa_time; % the review time
+    s     = model.parameters.default.pa_speed;
+    a     = model.parameters.default.bf_a;
+    b     = model.parameters.default.bf_b;
+    c     = model.parameters.default.bf_c;
+    % s = model.parameters.default.pa_speed;
+    if time > t-skip, time = t-skip;  end;
+    hrs = [];
+    bfs = [];
+    for i=1:3
+      % make random sample of the last x timesteps
+      sample = t+1 - round(time * rand);
+      hr = l2.getall(trace, sample, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+      bf = l2.getall(trace, sample, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+      hrs(i) = hr;
+      bfs(i) = bf;
+    end
+    if sum(hrs)>lhr*3 && sum(bfs) > 0 && t > 30
+      % hrs
+      % bfs
+      x1 = hrs(1);
+      x2 = hrs(2);% + 0.01*rand; %if hr = equal; the calculation cannot be made
+      x3 = hrs(3);% + 0.01*rand;
+      y1 = bfs(1);
+      y2 = bfs(2);
+      y3 = bfs(3);
+      if x1 ~= x2 && x1 ~= x3 && x2 ~= x3
+        % a2 =-(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3));
+        % b2 =(x1^2*y2 - x2^2*y1 - x1^2*y3 + x3^2*y1 + x2^2*y3 - x3^2*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3));
+        % c2 =-(- y3*x1^2*x2 + y2*x1^2*x3 + y3*x1*x2^2 - y2*x1*x3^2 - y1*x2^2*x3 + y1*x2*x3^2)/((x1 - x2)*(x1 - x3)*(x2 - x3));
+        %use the lhr
+        a2 = -(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
+        b2 = (x1^2*y2 - x2^2*y1 - x1^2*y3 + x3^2*y1 + x2^2*y3 - x3^2*y2 - 2*lhr*x1*y2 + 2*lhr*x2*y1 + 2*lhr*x1*y3 - 2*lhr*x3*y1 - 2*lhr*x2*y3 + 2*lhr*x3*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
+        c2 = ((((y3 - ((lhr - x3)^2*(y1 - y2))/((x1 - x2)*(x1 - 2*lhr + x2)))*(x1 - 2*lhr + x2))/((lhr - x3)*(lhr - x1 - x2 + x3)) + (lhr^2*y1 - lhr^2*y2 - x1^2*y2 + x2^2*y1 + 2*lhr*x1*y2 - 2*lhr*x2*y1)/((lhr - x1)*(lhr - x2)*(x1 - x2)))*(lhr - x1)*(lhr - x2)*(lhr - x3)*(lhr - x1 - x2 + x3))/((x1 - x3)*(x2 - x3)*(x1 - 2*lhr + x2))
+
+        a = a + s * (a2 - a);
+        b = b + s * (b2 - b);
+        c = c + s * (c2 - c);
+
+        model.parameters.default.bf_a = a;
+        model.parameters.default.bf_b = b;
+        model.parameters.default.bf_c = c;
+        % a
+        % b
+        % c
+        global PLOT_BF HR_AXIS BF_AXIS BF_A BF_B BF_C
+        BF_AXIS = a*HR_AXIS.^2+b*HR_AXIS+c;
+        % breathing_f = a*hr^2 + b*hr + c + (a2 * anxiety);;
+        % BF_A = BF_A+0.1;
+        % BF_AXIS = BF_A*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
+        refreshdata(PLOT_BF)
+      end
+    end
+  end
+  result = {t+1, 'adaption_1', assessment};
 end
 
 

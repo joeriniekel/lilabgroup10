@@ -1,10 +1,10 @@
 %% deriving a formula from pairs of points
 clc, clear all
-syms a b c x1 x2 x3 y1 y2 y3 % a2 z
+syms a b c x1 x2 x3 y1 y2 y3 lhr% a2 z
 % f(x)...   f: y = ...
-f1 = a*x1^2 + b*x1 + c % = y1
-f2 = a*x2^2 + b*x2 + c % = y2
-f3 = a*x3^2 + b*x3 + c % = y3
+f1 = a*(x1-lhr)^2 + b*(x1-lhr) + c % = y1
+f2 = a*(x2-lhr)^2 + b*(x2-lhr) + c % = y2
+f3 = a*(x3-lhr)^2 + b*(x3-lhr) + c % = y3
 
 % Transcribe f1 and f2 to definitions of c (c1 and c2).
 c1 = solve(f1 == y1, c) % c = y1 - a*x1^2 - b*x1
@@ -58,12 +58,19 @@ x1 =  90; y1 = 0.3;
 x2 = 110; y2 = 0.45;
 x3 = 125; y3 = 0.5;
 
-x1 = 70.1; y1 = 0.8230;
-x2 = 70.3; y2 = 0.8230;
-x3 = 70.2; y3 = 0.8230;
-a =-(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
-b =(x1^2*y2 - x2^2*y1 - x1^2*y3 + x3^2*y1 + x2^2*y3 - x3^2*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
-c =-(- y3*x1^2*x2 + y2*x1^2*x3 + y3*x1*x2^2 - y2*x1*x3^2 - y1*x2^2*x3 + y1*x2*x3^2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
+% x1 = 70.1; y1 = 0.8230;
+% x2 = 70.3; y2 = 0.8230;
+% x3 = 70.2; y3 = 0.8230;
+% a =-(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
+% b =(x1^2*y2 - x2^2*y1 - x1^2*y3 + x3^2*y1 + x2^2*y3 - x3^2*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
+% c =-(- y3*x1^2*x2 + y2*x1^2*x3 + y3*x1*x2^2 - y2*x1*x3^2 - y1*x2^2*x3 + y1*x2*x3^2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
+
+lhr = 40;
+a = -(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
+b = (x1^2*y2 - x2^2*y1 - x1^2*y3 + x3^2*y1 + x2^2*y3 - x3^2*y2 - 2*lhr*x1*y2 + 2*lhr*x2*y1 + 2*lhr*x1*y3 - 2*lhr*x3*y1 - 2*lhr*x2*y3 + 2*lhr*x3*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
+c = ((((y3 - ((lhr - x3)^2*(y1 - y2))/((x1 - x2)*(x1 - 2*lhr + x2)))*(x1 - 2*lhr + x2))/((lhr - x3)*(lhr - x1 - x2 + x3)) + (lhr^2*y1 - lhr^2*y2 - x1^2*y2 + x2^2*y1 + 2*lhr*x1*y2 - 2*lhr*x2*y1)/((lhr - x1)*(lhr - x2)*(x1 - x2)))*(lhr - x1)*(lhr - x2)*(lhr - x3)*(lhr - x1 - x2 + x3))/((x1 - x3)*(x2 - x3)*(x1 - 2*lhr + x2))
+
+
 
 % f(x) = a*x^2 + b*x + c
 x=95;

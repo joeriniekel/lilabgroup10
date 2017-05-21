@@ -4,6 +4,9 @@ clc
 disp('Running model...')
 model = l2('model');tic
 n = 400;
+global PLOT_BF PA PB PC PX
+PLOT_BF = plot(PA*PX);linkdata on
+
 global TRAINING TRAINING_BF TRAINING_HR
 c1_bf = csvread('data/17-05 conditie 1 rust/bb_v69.csv');%499
 c1_hr = csvread('data/17-05 conditie 1 rust/hr_v69.csv');
@@ -16,7 +19,6 @@ c3_hr = csvread('data/17-05 conditie 3 angst/hr_v32.csv');
 TRAINING = true;
 TRAINING_BF = c1_bf;
 TRAINING_HR = c1_hr;
-
 % global RT_CHEST YY
 % x = linspace(0,8);
 % YY = sin(x);
