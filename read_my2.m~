@@ -1,0 +1,15 @@
+clc
+
+% length(c1_bf)
+c1_bf = csvread('data/calculated/bb_c1_v56.csv');
+c1_hr = csvread('data/calculated/hr_c1_v56.csv');
+c1_bf = csvread('data/calculated/bb_c1_v56.csv');
+c1_hr = csvread('data/calculated/hr_c1_v56.csv');
+c3_bf = csvread('data/calculated/bb_c1_v56.csv');
+c3_hr = csvread('data/calculated/hr_c1_v56.csv');
+
+length(c1_bf)
+
+from = 1;to = 100;
+subplot(2,1,1);plot(c1_bf(from:to))
+subplot(2,1,2);plot(c1_hr(from:to))

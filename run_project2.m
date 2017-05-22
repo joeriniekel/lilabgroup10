@@ -4,7 +4,7 @@ clc
 disp('Running model...')
 model = l2('model');tic
 global N
-N = 900;
+N = 40;
 global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
 % BF_A = 0.1;BF_B = 0.1;BF_C = 0.1;
 HR_AXIS = 40:200;
