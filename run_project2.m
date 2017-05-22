@@ -3,15 +3,16 @@ close all
 clc
 disp('Running model...')
 model = l2('model');tic
-n = 400;
+global N
+N = 900;
 global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
 % BF_A = 0.1;BF_B = 0.1;BF_C = 0.1;
-HR_AXIS = 40:180;
+HR_AXIS = 40:200;
 % HR_AXIS = 0:100;
 BF_AXIS = 0.01*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
 subplot(1,2,1);
 PLOT_BF = plot(HR_AXIS,BF_AXIS);
-axis([0 180 0 4]);%ylim([-13 16]);
+axis([0 200 0 4]);%ylim([-13 16]);
 %xlabel='Heart Rate';ylabel='Breathing Frequency';Title='Relation between hr & bf';
 linkdata on
 
@@ -25,7 +26,7 @@ c3_hr = csvread('data/17-05 conditie 3 angst/hr_v32.csv');
     % als deze worden gebruikt worden de domein-waardes genegeerd
     % dt = 0.18;
 TRAINING    = true;
-TRAINING_BF = c1_bf;    TRAINING_HR = c1_hr;
+TRAINING_BF = c3_bf;    TRAINING_HR = c3_hr;
 
 % global RT_CHEST YY
 % x = linspace(0,8);
@@ -43,10 +44,10 @@ PLOT_CHEST1 = stem(CHEST_Y1);linkdata on
 % refreshdata(RT_CHEST1);
 
 
-%model.simulate(n, 'COM3');
-model.simulate(n,'default','default');
+%model.simulate(N, 'COM3');
+model.simulate(N,'default','default');
 disp('Simulation finished');
-time = toc; disp('time/n');   disp(time/n);
+time = toc; disp('time/N');   disp(time/N);
 %model.plot();
 model.plot({...
     'hr','breathing_f',...

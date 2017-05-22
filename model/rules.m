@@ -704,6 +704,29 @@ function result = bel_anxiety( model, trace, parameters, t )
   c         = model.parameters.default.bf_c;
   pa_time   = 1/dt * model.parameters.default.pa_time;
 
+  global N
+  if t == N - 1
+    % hr
+    % bf
+    bb = [];
+    hrr = [];
+    for i=1:t
+        % b2 = trace(i).b2.arg{1};
+        % hr = trace(i).hr2.arg{1};
+        bf3 = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+        hr3 = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+        bb(i) = bf3;
+        hrr(i) = hr3;
+    end
+
+    disp('saving traces')
+    ra = int2str(rand(1,1)*100);
+    name1 = strcat('data/calculated/bb_c3_v',ra,'.csv');
+    name2 = strcat('data/calculated/hr_c3_v',ra,'.csv');
+    csvwrite(name1,bb);
+    csvwrite(name2,hrr);
+    %   xlswrite('data/hee.xls',bb);
+  end
 
   if t < pa_time
     % the adaption model needs a few timesteps to calculate the parameters for the
@@ -1004,7 +1027,13 @@ function result = adaptions_chest_c_range( model, trace, parameters, t )
 end
 
 
-
+% if TRAINING
+%   dt = fixed
+% else
+%   if dt2 > dt
+%     dt++
+% wait until dt
+% go
 
 
 %
