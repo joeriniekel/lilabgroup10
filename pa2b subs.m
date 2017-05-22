@@ -57,7 +57,14 @@ c = simplify(c_no_ab)
 x1 =  90; y1 = 0.3;
 x2 = 110; y2 = 0.45;
 x3 = 125; y3 = 0.5;
-
+% Example values for {x,y}
+x1 =  90; y1 = 0.5;
+x2 = 110; y2 = 0.8;
+x3 = 135; y3 = 1.1;
+% Example values for {x,y}
+x1 =  90; y1 = 0.525;
+x2 = 110; y2 = 0.629;
+x3 = 140; y3 = 0.8;
 % x1 = 70.1; y1 = 0.8230;
 % x2 = 70.3; y2 = 0.8230;
 % x3 = 70.2; y3 = 0.8230;
@@ -70,12 +77,11 @@ a = -(x1*y2 - x2*y1 - x1*y3 + x3*y1 + x2*y3 - x3*y2)/((x1 - x2)*(x1 - x3)*(x2 - 
 b = (x1^2*y2 - x2^2*y1 - x1^2*y3 + x3^2*y1 + x2^2*y3 - x3^2*y2 - 2*lhr*x1*y2 + 2*lhr*x2*y1 + 2*lhr*x1*y3 - 2*lhr*x3*y1 - 2*lhr*x2*y3 + 2*lhr*x3*y2)/((x1 - x2)*(x1 - x3)*(x2 - x3))
 c = ((((y3 - ((lhr - x3)^2*(y1 - y2))/((x1 - x2)*(x1 - 2*lhr + x2)))*(x1 - 2*lhr + x2))/((lhr - x3)*(lhr - x1 - x2 + x3)) + (lhr^2*y1 - lhr^2*y2 - x1^2*y2 + x2^2*y1 + 2*lhr*x1*y2 - 2*lhr*x2*y1)/((lhr - x1)*(lhr - x2)*(x1 - x2)))*(lhr - x1)*(lhr - x2)*(lhr - x3)*(lhr - x1 - x2 + x3))/((x1 - x3)*(x2 - x3)*(x1 - 2*lhr + x2))
 
-
-
-% f(x) = a*x^2 + b*x + c
-x=95;
-y = a*x^2 + b*x + c
-x=110;
-y = a*x^2 + b*x + c
+x = 90;
+y = a*(x-lhr)^2 + b*(x-lhr) + c
+x = 110;
+y = a*(x-lhr)^2 + b*(x-lhr) + c
+x = 140;
+y = a*(x-lhr)^2 + b*(x-lhr) + c
 % dit werkt ook echt gewoon
 
