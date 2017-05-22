@@ -10,7 +10,10 @@ HR_AXIS = 40:230;
 % HR_AXIS = 0:100;
 BF_AXIS = BF_A*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
 subplot(1,2,1);
-PLOT_BF = plot(HR_AXIS,BF_AXIS);ylim([-13 16]);linkdata on
+PLOT_BF = plot(HR_AXIS,BF_AXIS);
+axis([40 180 0 5]);%ylim([-13 16]);
+%xlabel='Heart Rate';ylabel='Breathing Frequency';Title='Relation between hr & bf';
+linkdata on
 
 global TRAINING TRAINING_BF TRAINING_HR
 c1_bf = csvread('data/17-05 conditie 1 rust/bb_v69.csv');%499
