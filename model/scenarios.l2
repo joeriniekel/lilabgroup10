@@ -37,9 +37,9 @@ default (
   phase_shift{0};             [1]
   cycle_time{1};              [1]
   support{4 none};            [1:2]
-  hr_pos{0};                  [1]
-  
-  %assessment{false};          [1]
+  hr_pos{false};                  [1]
+
+  assessment{false};          [1]
   %mind{4 none};               [1]
 
 
@@ -47,19 +47,19 @@ default (
     belief{chest_c{10}};        [1]
     belief{starting_dir{1 in}}; [1]
     belief{hr{70}};             [1]
-    belief{d_chest_c{0}};       [1]
+    %belief{d_chest_c{0}};       [1]
     belief{d_hr{0}};            [1]
     belief{d_bf{0}};            [1]
     belief{anxiety{0}};         [1]
 
     % beliefs used by support
     belief{phase_shift{0}};     [1]
-    %belief{relative_c{0}};     [1]
+    %belief{relative_c{0}};      [1]
     belief{breathing_f{0}};     [1]
     belief{phase_shift{0}};     [1]
 
   % desires
-    desire{breathing_f{10}};    [1]
+    desire{breathing_f{1}};     [1]
     desire{starting_dir{1 in}}; [1]
     %?
 
