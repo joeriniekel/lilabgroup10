@@ -705,28 +705,28 @@ function result = bel_anxiety( model, trace, parameters, t )
   pa_time   = 1/dt * model.parameters.default.pa_time;
 
   % script om data op te slaan ---------------------------------------------
-  global N
-  if t == N - 1
-    % hr
-    % bf
-    bb = [];
-    hrr = [];
-    for i=1:t
-        % b2 = trace(i).b2.arg{1};
-        % hr = trace(i).hr2.arg{1};
-        bf3 = l2.getall(trace, i+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-        hr3 = l2.getall(trace, i+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-        bb(i) = bf3;
-        hrr(i) = hr3;
-    end
-    disp('saving traces')
-    ra = int2str(rand(1,1)*100);
-    name1 = strcat('data/calculated/bb_c2_v',ra,'.csv');
-    name2 = strcat('data/calculated/hr_c2_v',ra,'.csv');
-    csvwrite(name1,bb);
-    csvwrite(name2,hrr);
-    %   xlswrite('data/hee.xls',bb);
-  end
+  % global N
+  % if t == N - 1
+  %   % hr
+  %   % bf
+  %   bb = [];
+  %   hrr = [];
+  %   for i=1:t
+  %       % b2 = trace(i).b2.arg{1};
+  %       % hr = trace(i).hr2.arg{1};
+  %       bf3 = l2.getall(trace, i+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  %       hr3 = l2.getall(trace, i+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+  %       bb(i) = bf3;
+  %       hrr(i) = hr3;
+  %   end
+  %   disp('saving traces')
+  %   ra = int2str(rand(1,1)*100);
+  %   name1 = strcat('data/calculated/bb_c1_v',ra,'.csv');
+  %   name2 = strcat('data/calculated/hr_c1_v',ra,'.csv');
+  %   csvwrite(name1,bb);
+  %   csvwrite(name2,hrr);
+  %   %   xlswrite('data/hee.xls',bb);
+  % end
   % ------------------------------------------------------------------------
 
   if t < pa_time

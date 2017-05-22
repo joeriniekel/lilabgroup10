@@ -1,18 +1,9 @@
-clear all
-close all
-clc
-disp('Running model...')
-model = l2('model');tic
-global N
+clear all; close all;clc
+global N PLOT_BF HR_AXIS BF_AXIS
 N = 498;
-global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
-% BF_A = 0.1;BF_B = 0.1;BF_C = 0.1;
-HR_AXIS = 40:200;
-% HR_AXIS = 0:100;
-BF_AXIS = 0.01*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
-subplot(1,2,1);
-PLOT_BF = plot(HR_AXIS,BF_AXIS);
-axis([0 200 0 4]);%ylim([-13 16]);
+HR_AXIS = 40:200;   BF_AXIS = 0.01*HR_AXIS;
+
+subplot(1,2,1);     PLOT_BF = plot(HR_AXIS,BF_AXIS);    axis([0 200 0 4]);
 %xlabel='Heart Rate';ylabel='Breathing Frequency';Title='Relation between hr & bf';
 linkdata on
 
@@ -26,15 +17,12 @@ c3_hr = csvread('data/17-05 conditie 3 angst/hr_v32.csv');
     % als deze worden gebruikt worden de domein-waardes genegeerd
     % dt = 0.18;
 TRAINING    = false;
-TRAINING_BF = c2_bf;    TRAINING_HR = c2_hr;
+TRAINING_BF = c1_bf;    TRAINING_HR = c1_hr;
 
 % global RT_CHEST YY
-% x = linspace(0,8);
-% YY = sin(x);
+% x = linspace(0,8); YY = sin(x);
 % RT_CHEST = plot(x,YY);
-% h.XDataSource = 'x';
-% h.YDataSource = 'YY';
-% linkdata on
+% h.XDataSource = 'x';  h.YDataSource = 'YY'; linkdata on
 global CHEST_Y1 PLOT_CHEST1  %CHEST_Y2 RT_CHEST2
 CHEST_Y1 = zeros([1,100]); % CHEST_Y2 = [0]; subplot(1,2,2); 
 subplot(1,2,2);
@@ -44,6 +32,8 @@ PLOT_CHEST1 = stem(CHEST_Y1);linkdata on
 % refreshdata(RT_CHEST1);
 
 
+disp('Running model...')
+model = l2('model');tic
 %model.simulate(N, 'COM3');
 model.simulate(N,'default','default');
 disp('Simulation finished');
@@ -71,9 +61,12 @@ model.plot({...
     %,'starting_dir','performance'...
 	%,'phase_shift'...
     
- %, 'physical_state'...
+ %  ,'physical_state'...
  %   ,'graph_bel_breathing_acc','graph_bel_breathing_pattern'...
-    
+
+ 
+
+ 
 %graph_bel_breathing_pattern
 %plot belief...
 
