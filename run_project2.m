@@ -4,7 +4,7 @@ clc
 disp('Running model...')
 model = l2('model');tic
 global N
-N = 40;
+N = 498;
 global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
 % BF_A = 0.1;BF_B = 0.1;BF_C = 0.1;
 HR_AXIS = 40:200;
@@ -25,8 +25,8 @@ c3_bf = csvread('data/17-05 conditie 3 angst/bb_v32.csv');
 c3_hr = csvread('data/17-05 conditie 3 angst/hr_v32.csv');
     % als deze worden gebruikt worden de domein-waardes genegeerd
     % dt = 0.18;
-TRAINING    = true;
-TRAINING_BF = c3_bf;    TRAINING_HR = c3_hr;
+TRAINING    = false;
+TRAINING_BF = c2_bf;    TRAINING_HR = c2_hr;
 
 % global RT_CHEST YY
 % x = linspace(0,8);
