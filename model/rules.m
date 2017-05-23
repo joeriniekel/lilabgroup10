@@ -945,15 +945,54 @@ end
 function result = support( model, trace, parameters, t )
   starting_dir = l2.getall(trace, t+1, 'desire', predicate('starting_dir', NaN)).arg{1}.arg{1};
   assessment = trace(t+1).assessment.arg{1};
-  % assessment = true;
+  cycle_time = trace(t+1).cycle_time.arg{1};
+
+  dt = model.parameters.default.dt;
+  
+
+  assessment = true;
 
   if assessment
     starting_dir = starting_dir;
+    disp('assessment')
   else
     starting_dir = '4 none';
   end
-  % if t == 1, starting_dir =  '4 none';end;
-  % starting_dir =  '4 none';
+
+
+
+  % amp=1;
+  % duration=N * 10; %(dt=0.2)
+  % fs=20500;  % sampling frequency
+  % global FREQ A
+  % FREQ=0;
+  % values=0:1/fs:duration;
+  % A=amp*sin(2*pi* FREQ*values);
+  % SON = sound(A);
+
+  % amp=1;
+  % duration= dt + 0.01; %(dt=0.2)
+  % fs=20500;  % sampling frequency
+  % values=0:1/fs:duration;
+
+  % if strcmp(starting_dir,'1 in')
+  %   freq=1200 + cycle_time*10;
+  %   a=amp*sin(2*pi* freq*values);
+  %   sound(a);    
+  %   % global FREQ
+  %   % % FREQ=0;
+  %   % FREQ = 800 - cycle_time*10;
+  % elseif strcmp(starting_dir,'3 out')
+  %   freq=1200 + cycle_time*10;
+  %   sound(a);
+  %   % global FREQ
+  %   % % FREQ=0;
+  %   % FREQ = 12000 + cycle_time*10;
+  % end
+
+
+
+
   result = {t+1, 'support', {starting_dir}};
 end
 
@@ -983,6 +1022,8 @@ end
 %
 %
 
+%todo
+% gemiddelde waardes gebruiken
 function result = adaptions_hr_bf( model, trace, parameters, t )
   assessment = trace(t+1).assessment.arg{1};
   skip  = model.parameters.default.pa_skip_n_time_steps;

@@ -41,3 +41,19 @@ freq=400;
 values=0:1/fs:duration;
 a=amp*sin(2*pi* freq*values);
 sound(a);
+
+
+amp=1;
+duration=0.5;
+fs=20500  % sampling frequency
+freq=800;
+values=0:1/fs:duration;
+a=amp*sin(2*pi* freq*values);
+sound(a);
+
+pause(100)
+
+freq=1200;
+values=0:1/fs:duration;
+a=amp*sin(2*pi* freq*values);
+sound(a);

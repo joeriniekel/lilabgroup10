@@ -79,7 +79,8 @@ default (
   n_hr_cycles; 3;
 
   % PARAMETER ADAPTION MODEL
-  pa_speed;               0.01
+  pa_speed;               0
+    %0.01
   pa_time;                10
     % 40
   pa_skip_n_time_steps;   20
