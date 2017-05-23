@@ -17,7 +17,7 @@ c3_hr = csvread('data/17-05 conditie 3 angst/hr_v32.csv');
     % als deze worden gebruikt worden de domein-waardes genegeerd
     % dt = 0.18;
 TRAINING    = true;
-TRAINING_BF = c1_bf;    TRAINING_HR = c1_hr;
+TRAINING_BF = c2_bf;    TRAINING_HR = c2_hr;
 
 % global RT_CHEST YY
 % x = linspace(0,8); YY = sin(x);
@@ -33,7 +33,7 @@ PLOT_CHEST1 = stem(CHEST_Y1);linkdata on
 
 
 disp('Running model...')
-model = l2('model');tic
+model = l2('model_voor_g');tic
 %model.simulate(N, 'COM3');
 model.simulate(N,'default','default');
 disp('Simulation finished');

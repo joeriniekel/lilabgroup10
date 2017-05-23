@@ -363,6 +363,8 @@ end
 
 function result = bel_chest_c( model, trace, parameters, t )
   chest_c = l2.getall(trace, t+1, 'observe', predicate('chest_c', NaN)).arg{1}.arg{1};
+  % t
+  % chest_c
   result = {t+1, 'belief', predicate('chest_c',chest_c)};
 end
 
@@ -372,16 +374,45 @@ function result = bel_hr_pos( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('hr_pos',hr_pos)};
 end
 
+%new
 function result = bel_starting_dir( model, trace, parameters, t )
-  prev_chest_c = l2.getall(trace, t, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
-  curr_chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
-  margin       = model.parameters.default.chest_c_margin;
-  if curr_chest_c > prev_chest_c + margin
+  if t < 3
+    % t
     chest_dir = '1 in';
-  elseif curr_chest_c < prev_chest_c - margin
-  	chest_dir = '3 out';
+    % chest_dir
   else
-  	chest_dir = '2 rest';
+    % t >= 3
+    prev2_chest_c = l2.getall(trace,t-1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+    % prev2_chest_c
+    prev_chest_c = l2.getall(trace, t, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+    % prev_chest_c
+    
+    % curr = l2.getall(trace, t+2, 'belief', predicate('chest_c', NaN))
+    curr_chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+    % curr_chest_c
+  
+    margin  = model.parameters.default.chest_c_margin; % percentage of the range
+    max     = model.parameters.default.bel_max_chest_c;
+    min     = model.parameters.default.bel_min_chest_c;
+    range   = max - min;
+    margin  = margin * range; %relative margin
+  
+    prev_chest_c = mean([prev2_chest_c prev_chest_c]);
+
+    % if curr_chest_c > prev_chest_c + margin && prev_chest_c > prev2_chest_c + margin
+    %   chest_dir = '1 in';
+    % elseif curr_chest_c < prev_chest_c - margin && prev_chest_c < prev2_chest_c - margin
+    %   chest_dir = '3 out';
+    % else
+    %   chest_dir = '2 rest';
+    % end
+    if curr_chest_c > prev_chest_c + margin
+      chest_dir = '1 in';
+    elseif curr_chest_c < prev_chest_c - margin
+    	chest_dir = '3 out';
+    else
+    	chest_dir = '2 rest';
+    end
   end
   result = {t+1, 'belief', predicate('starting_dir',{chest_dir})};
 end
@@ -400,7 +431,15 @@ function result = bel_breathing_f( model, trace, parameters, t )
   a = t;
   mode = 0;
   count = 1;          % matlab starts counting at 1 instead of 0
-  prev_val = l2.getall(trace, a+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  
+  % t
+  % prev_val3 = l2.getall(trace, a+1, 'belief', predicate('starting_dir', NaN))
+
+  if t == 1
+    prev_val = 0;
+  else
+    prev_val = l2.getall(trace, a+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  end
 
   if t <= n_cycles*2  % a minimum of n*2+1 time steps are required (in+out+...+next_in)
     breathing_f = 0;
@@ -705,15 +744,11 @@ function result = bel_anxiety( model, trace, parameters, t )
   pa_time   = 1/dt * model.parameters.default.pa_time;
 
   % script om data op te slaan ---------------------------------------------
-  % global N
-  % if t == N - 1
-  %   % hr
-  %   % bf
+  % global N TRAINING
+  % if t == N - 1 && TRAINING
   %   bb = [];
   %   hrr = [];
   %   for i=1:t
-  %       % b2 = trace(i).b2.arg{1};
-  %       % hr = trace(i).hr2.arg{1};
   %       bf3 = l2.getall(trace, i+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   %       hr3 = l2.getall(trace, i+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   %       bb(i) = bf3;
@@ -728,6 +763,7 @@ function result = bel_anxiety( model, trace, parameters, t )
   %   %   xlswrite('data/hee.xls',bb);
   % end
   % ------------------------------------------------------------------------
+
 
   if t < pa_time
     % the adaption model needs a few timesteps to calculate the parameters for the
@@ -959,7 +995,7 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
     a     = model.parameters.default.bf_a;
     b     = model.parameters.default.bf_b;
     c     = model.parameters.default.bf_c;
-    margin = 1;
+    margin = 5;
 
     if time>t,time=t;end;
     hrs = [];
@@ -981,19 +1017,23 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
       y2 = bfs(2);
       if x1 > x2 + margin || x1 < x2 - margin
         % a = 4.2857e-04 % when filled in in the 'advanced' formula
-        b2 = (y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2)/(x1 - x2);
-        c2 = y1 - a*(lhr - x1)^2 + ((lhr - x1)*(y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2))/(x1 - x2);
+        %b2 = (y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2)/(x1 - x2);
+        %c2 = y1 - a*(lhr - x1)^2 + ((lhr - x1)*(y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2))/(x1 - x2);
 
-        b = b + s * (b2 - b);
+        %b2 = (y1 - y2)/(x1 - x2);
+        c2 = y1 + ((lhr - x1)*(y1 - y2))/(x1 - x2);
+
+
+        % b = b + s * (b2 - b);
         c = c + s * (c2 - c);
 
-        if b2 > 50 || c2 > 50
-          x1
-          x2
-        end
+        % if b2 > 10 || c2 > 10 || b2 < -10
+        %   x1
+        %   x2
+        % end
 
         % model.parameters.default.bf_a = a;
-        model.parameters.default.bf_b = b;
+        % model.parameters.default.bf_b = b;
         model.parameters.default.bf_c = c;
 
         global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
@@ -1007,6 +1047,65 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
   result = {t+1, 'adaption_1', assessment};
 end
 
+% function result = adaptions_hr_bf( model, trace, parameters, t )
+%   assessment = trace(t+1).assessment.arg{1};
+%   skip  = model.parameters.default.pa_skip_n_time_steps;
+%   %skip the first 10 timesteps
+%   if ~assessment && t>3+skip
+%     lhr   = model.parameters.default.lhr;
+%     dt    = model.parameters.default.dt;
+%     time  = 1/dt * model.parameters.default.pa_time; % the review time
+%     s     = model.parameters.default.pa_speed;
+%     a     = model.parameters.default.bf_a;
+%     b     = model.parameters.default.bf_b;
+%     c     = model.parameters.default.bf_c;
+%     margin = 5;
+
+%     if time>t,time=t;end;
+%     hrs = [];
+%     bfs = [];
+%     for i=1:3
+%       % make random sample of the last x timesteps
+%       sample = t+1 - round(time * rand);
+%       hr = l2.getall(trace, sample, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+%       bf = l2.getall(trace, sample, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+%       hrs(i) = hr;
+%       bfs(i) = bf;
+%     end
+%     if sum(hrs)>lhr*3 && sum(bfs) > 0 && t > 30
+%       % hrs
+%       % bfs
+%       x1 = hrs(1);
+%       x2 = hrs(2);
+%       y1 = bfs(1);
+%       y2 = bfs(2);
+%       if x1 > x2 + margin || x1 < x2 - margin
+%         % a = 4.2857e-04 % when filled in in the 'advanced' formula
+%         b2 = (y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2)/(x1 - x2);
+%         c2 = y1 - a*(lhr - x1)^2 + ((lhr - x1)*(y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2))/(x1 - x2);
+
+%         b = b + s * (b2 - b);
+%         c = c + s * (c2 - c);
+
+%         if b2 > 10 || c2 > 10 || b2 < -10
+%           x1
+%           x2
+%         end
+
+%         % model.parameters.default.bf_a = a;
+%         model.parameters.default.bf_b = b;
+%         model.parameters.default.bf_c = c;
+
+%         global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
+%         BF_AXIS = a*HR_AXIS.^2+b*HR_AXIS+c;
+%         % BF_A = BF_A+0.1;
+%         % BF_AXIS = BF_A*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
+%         refreshdata(PLOT_BF)
+%       end
+%     end
+%   end
+%   result = {t+1, 'adaption_1', assessment};
+% end
 
 function result = adaptions_chest_c_range( model, trace, parameters, t )
   %adaption min and max chest c
@@ -1085,7 +1184,11 @@ end
 % Starting direction, physical state, original_hr, anxiety
 
 function result = graph_bel_starting_dir( model, trace, parameters, t )
-  chest_pos = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  if t == 1
+    chest_pos = '1 in';
+  else
+    chest_pos = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  end
   result = {t+1, 'graph_bel_starting_dir', {chest_pos}};
 end
 function result = graph_bel_anxiety( model, trace, parameters, t )
