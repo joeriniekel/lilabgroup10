@@ -5,8 +5,8 @@ global N REAL_TIME_INPUT TRAINING SOUND
 % CONFIG
 % -------------------------
 
-N               = 498;     % number of timesteps to render
-SOUND           = false;    % use audio feedback for support
+N               = 80;     % number of timesteps to render
+SOUND           = true;    % use audio feedback for support
 REAL_TIME_INPUT = false;   % use realtime input data
 TRAINING        = true;   % use previously generated input from csv
 
@@ -17,7 +17,7 @@ TRAINING        = true;   % use previously generated input from csv
 
 global PLOT_BF HR_AXIS BF_AXIS
 HR_AXIS = 40:200;   BF_AXIS = 0.01*HR_AXIS;
-subplot(1,2,1);     PLOT_BF = plot(HR_AXIS,BF_AXIS);    axis([0 200 0 4]);
+subplot(2,2,1);     PLOT_BF = plot(HR_AXIS,BF_AXIS);    axis([0 200 0 4]);
 %xlabel='Heart Rate';ylabel='Breathing Frequency';Title='Relation between hr & bf';
 linkdata on
 
@@ -28,13 +28,16 @@ linkdata on
 % h.XDataSource = 'x';  h.YDataSource = 'YY'; linkdata on
 global CHEST_Y1 PLOT_CHEST1  %CHEST_Y2 RT_CHEST2
 CHEST_Y1 = zeros([1,100]); % CHEST_Y2 = [0]; subplot(1,2,2); 
-subplot(1,2,2);
+subplot(2,2,2);
 PLOT_CHEST1 = stem(CHEST_Y1);linkdata on
 % RT_CHEST1 = plot(CHEST_Y1);linkdata on
 % subplot(1,2,1); RT_CHEST2 = plot(CHEST_Y2);linkdata on
 % refreshdata(RT_CHEST1);
 
-
+global PLOT_COLOR
+subplot(2,2,3); PLOT_COLOR = area([1 1]);
+PLOT_COLOR(1).FaceColor = [0 0 0];% red
+% PLOT_COLOR(1).FaceColor = [0 0 1];% blue
 
 % -------------------------
 % CSV data
@@ -50,7 +53,7 @@ c3_hr = csvread('data/17-05 conditie 3 angst/hr_v32.csv');
     % als deze worden gebruikt worden de domein-waardes genegeerd
     % dt = 0.18;
     
-TRAINING_BF = c2_bf;    TRAINING_HR = c2_hr;
+TRAINING_BF = c3_bf;    TRAINING_HR = c3_hr;
 
 
 

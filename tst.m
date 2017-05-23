@@ -88,3 +88,16 @@ image(:,:,2)=1; %green
 image(:,:,1)=1; %red
 image(:,:,3)=1; %blue
 figure, imshow(image)
+%%
+Y = [1, 5, 3;
+     3, 2, 7;
+     1, 5, 3;
+     2, 6, 1];
+h = area(Y,'LineStyle',':');
+Y = [1 1];
+h = area(Y,'LineStyle',':');
+h(1).FaceColor = [1 0 0];% red
+h(1).FaceColor = [0 0 1];% blue
+h(1).FaceColor = [1 1 0];% yellow
+h(1).FaceColor = [0 0.5 0];% green
+% h(1).FaceColor = [0 0 0];% black

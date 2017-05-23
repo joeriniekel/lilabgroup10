@@ -9,24 +9,6 @@ end
 % chest_c in cm = voltage * 10 + 50?
 % of logaritmisch?
 
-
-%todo:
-% dt 'vastzetten' op e.g. dt = 0.19
-
-% of regel bij min voltage
-% if voltage < min_voltage
-%   min_voltage = voltage - 0.01
-% idem voor max
-% op deze manier kan je instellen op 0 en gaan ze vanzelf goed staan
-% mits de user 1x diep in en uitademt
-
-
-
-% start t=0 with tic
-% before going to t=1, check tic. Two options
-% (1) if tac < dt, pause( dt - tac ); else, disp('taking too much time') (or raise dt)
-% (2) dt(t+1) = tac
-
 % ---------------------------------------------------------------
 %
 %     DOMAIN
@@ -443,7 +425,7 @@ function result = bel_breathing_f( model, trace, parameters, t )
 
   if t <= n_cycles*2  % a minimum of n*2+1 time steps are required (in+out+...+next_in)
     breathing_f = 0;
-    disp('Waiting - collecting data')
+    % disp('Waiting - collecting data')
     if t==n_cycles*2, disp('  Go  -->');disp('Searching for breathing cycles...');end; %last wait
   else
     while sum(v) <= n_cycles + 1  %the last interval will be cut off
@@ -525,7 +507,7 @@ function result = bel_hr( model, trace, parameters, t )
 
     if t <= n_cycles*2  % a minimum of n*2+1 time steps are required (in+out+...+next_in)
       hr = 0;
-      disp('Waiting - collecting data (hr)')
+      % disp('Waiting - collecting data (hr)')
       if t==n_cycles*2, disp('  Go  -->');disp('Searching for heart beats...');end; %last wait
     else
       while sum(v) <= n_cycles + 1  %the last interval will be cut off
@@ -671,11 +653,12 @@ function result = bel_d_hr( model, trace, parameters, t )
 end
 
 %new
+%todo: deze zijn nog altijd 0
 function result = bel_stable_bf( model, trace, parameters, t )
   % check if bf has both increased and decreased in a certain interval
   bf        = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   dt        = model.parameters.default.dt;
-  n_cycles  = model.parameters.default.dt; % number of cycles to search
+  n_cycles  = 0.2; % number of cycles to search
   time_per_cycle = bf / dt;
   time = n_cycles * time_per_cycle;
   if time>t, time=t; end;
@@ -809,18 +792,23 @@ function result = bel_ps( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('ps', ps)};
 end
 
-% function result = bel_original_hr( model, trace, parameters, t )
-%   %the value of the heart rate without the influence from anxiety
-%   ps  = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
-%   bhr = model.parameters.default.bhr; %todo kan dit(2)?
-%   % hr = (bhr * ps) + (a * anxiety)
-%   hr = bhr * ps;
-%   result = {t+1, 'belief', predicate('original_hr', hr)};
-% end
+function result = bel_original_hr( model, trace, parameters, t )
+  %the value of the heart rate without the influence from anxiety
+  ps  = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
+  bhr = model.parameters.default.bhr; %todo kan dit(2)?
+  % hr = (bhr * ps) + (a * anxiety)
+  hr = bhr * ps;
+  result = {t+1, 'belief', predicate('original_hr', hr)};
+end
 
 function result = assessment( model, trace, parameters, t )
   anxiety = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
   floor_a = 0.0001;
+
+  %demo
+  % if t < 100
+  % assessment = true
+
   if anxiety > floor_a
     assessment = true;
   else
@@ -858,7 +846,7 @@ end
 function result = des_bf( model, trace, parameters, t )
   % desired breathing_f without influence from anxiety.
   % hr ipv original hr
-  hr  = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+  hr = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
   % h       = model.parameters.default.hr_breathing;
   lhr = model.parameters.default.lhr;
   a   = model.parameters.default.bf_a;
@@ -948,23 +936,31 @@ function result = support( model, trace, parameters, t )
   assessment = trace(t+1).assessment.arg{1};
   cycle_time = trace(t+1).cycle_time.arg{1};
 
-  dt = model.parameters.default.dt;
+  global PLOT_COLOR
 
-
-  assessment = true;
+  % assessment = true;
 
   if assessment
     starting_dir = starting_dir;
-    % disp('support actions')
+
+    if strcmp(starting_dir, '1 in')
+      PLOT_COLOR(1).FaceColor = [1 0 0];% red
+    elseif strcmp(starting_dir,'3 out')
+      PLOT_COLOR(1).FaceColor = [0 0 1];% blue
+    else
+      PLOT_COLOR(1).FaceColor = [1 1 0];% yellow
+      % h(1).FaceColor = [0 0.5 0];% green
+    end
   else
     starting_dir = '4 none';
+    PLOT_COLOR(1).FaceColor = [0 0 0];% yellow
   end
 
-
+  refreshdata(PLOT_COLOR)
 
   global SOUND
   if SOUND
-
+    dt = model.parameters.default.dt;
     hi_f = 3456; % 8*432    %800 1200
     lo_f = 432; %432 ipv 440
     amp = 0.5;
@@ -984,7 +980,7 @@ function result = support( model, trace, parameters, t )
 
     if strcmp(starting_dir,'1 in')
       % f = 800 + (cycle_time*1).^2;
-      % f = lo_f * int^(cycle_time-1);
+      f = lo_f * int^(cycle_time-1);
       if f > Fs, f = Fs; end; % shannon..
       a2 = decreasing_amp(1:len) .* sin(2*pi* f * values);
       sound(a2,Fs);
@@ -1088,14 +1084,13 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
         s_c    = model.parameters.default.pa_speed_c;
 
         % a = 1.5505e-04 % when filled in in the 'advanced' formula
-        b2 = (- a*x1^2 + a*x2^2 + y1 - y2)/(x1 - x2)
-        c2 = (a*x1^2*x2 - a*x1*x2^2 + y2*x1 - y1*x2)/(x1 - x2)
+        b2 = (- a*x1^2 + a*x2^2 + y1 - y2)/(x1 - x2);
+        c2 = (a*x1^2*x2 - a*x1*x2^2 + y2*x1 - y1*x2)/(x1 - x2);
 
         % relative difference of the change
         rel_d_b = (b2 - b) / b;
         rel_d_c = (c2 - c) / c;
 
-        rel_d_c
         % keep diffs in range [-pa_lim,pa_lim]
         if rel_d_b > pa_lim
           rel_d_b = pa_lim;
@@ -1109,19 +1104,18 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
         end
 
         % apply differences:  p = old p * 1 + (factor * relativ change)
-        b = b * 1 + (s_b * rel_d_b);
-        c = c * 1 + (s_c * rel_d_c);
-        c
+        b = b * (1 + s_b * rel_d_b);
+        c = c * (1 + s_c * rel_d_c);
 
         % test the params (bf cannor be < 0)
-        mini = 30;
-        maxi = 250;
-        x = 30:3:250; %linspace
-        f1 = a*x.^2 + b*x + c;
-        % f3 = b + 2*a*x;
-        % index = find(min(f3) == f3)
-        % lowest = f1(index) % when a>0
-        if min(f1) > 0
+        % mini = 30;
+        % maxi = 250;
+        % x = 30:3:250; %linspace
+        % f1 = a*x.^2 + b*x + c;
+        % % f3 = b + 2*a*x;
+        % % index = find(min(f3) == f3)
+        % % lowest = f1(index) % when a>0
+        % if min(f1) > 0
           %change params
           model.parameters.default.bf_b = b;
           model.parameters.default.bf_c = c;
@@ -1131,9 +1125,9 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
           % BF_A = BF_A+0.1;
           % BF_AXIS = BF_A*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
           refreshdata(PLOT_BF)
-        else
-          disp('PA: f1 < 0')
-        end
+        % else
+        %   disp('PA: f1 < 0')
+        % end
       end
     end
   end
@@ -1154,8 +1148,6 @@ function result = adaptions_chest_c_range( model, trace, parameters, t )
     model.parameters.default.bel_min_chest_c = chest_c;
     change = true;
   end
-  % max
-  % min
   result = {t+1, 'adaption_2', change};
 end
 
@@ -1258,14 +1250,14 @@ function result = graph_bel_anxiety( model, trace, parameters, t )
   h = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_bel_anxiety', h};
 end
-% function result = graph_bel_prev_ps( model, trace, parameters, t )
-%   ps = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
-%   result = {t+1, 'graph_bel_prev_ps', ps};
-% end
-% function result = graph_original_hr( model, trace, parameters, t )
-%   h = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
-%   result = {t+1, 'graph_original_hr', h};
-% end
+function result = graph_bel_prev_ps( model, trace, parameters, t )
+  ps = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_bel_prev_ps', ps};
+end
+function result = graph_original_hr( model, trace, parameters, t )
+  h = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_original_hr', h};
+end
 function result = graph_bel_used_chest_range( model, trace, parameters, t )
   x = l2.getall(trace, t+1, 'belief', predicate('used_chest_range', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_bel_used_chest_range', x};
