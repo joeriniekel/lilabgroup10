@@ -1,0 +1,18 @@
+%SWITCH;     {On, Off}
+
+POS;                {1 in, 2 rest, 3 out, 4 none}
+  %alphabetic ordering
+%PATTERN;                {regular, irregular}
+  %alphabetic ordering
+  %consistent, inconsistent
+
+
+% beliefs etc
+
+OBSERVE;            {<chest_c>,<hr>,<hr_pos>}
+BELIEF;             {<chest_c>,<hr>,<hr_pos>,<relative_c>,<used_chest_range>,<br_intensity>,<starting_dir>,<phase_shift>,<ps>,<anxiety>,<breathing_f>,<d_bf>,<d_hr>,<stable_bf>,<stable_hr>,<original_hr>}
+DESIRE;             {<breathing_f>,<chest_c>,<starting_dir>}
+PREDICT;            {<erl>}
+ASSUME;             {<erl>}
+DEVIATION;          {<erl>}
+SENS;               {<erl>}
