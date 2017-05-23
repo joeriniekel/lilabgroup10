@@ -5,7 +5,7 @@ global N REAL_TIME_INPUT TRAINING SOUND SAVE_DATA
 % CONFIG
 % -------------------------
 
-N               = 200;     % number of timesteps to render
+N               = 30;     % number of timesteps to render
 SOUND           = false;    % use audio feedback for support
 REAL_TIME_INPUT = true;   % use realtime input data
 TRAINING        = false;   % use previously generated input from csv
@@ -72,7 +72,7 @@ tic;
 model.simulate(N,'COM5','default','default');
 
 disp('Simulation finished');
-toc % time = toc; disp('time/N');   disp(time/N);
+toc; % time = toc; disp('time/N');   disp(time/N);
 
 
 

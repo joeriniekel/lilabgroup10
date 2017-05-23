@@ -31,7 +31,7 @@
 
 default (
 
-  dt;                 0.01
+  dt;                 0.19
   bhr;                90
   lhr;                40
   max_chest_c;        80
