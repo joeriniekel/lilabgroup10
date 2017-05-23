@@ -1,15 +1,15 @@
 clear all; close all; clc
-global N REAL_TIME_INPUT TRAINING SOUND
+global N REAL_TIME_INPUT TRAINING SOUND SAVE_DATA
 
 % -------------------------
 % CONFIG
 % -------------------------
 
 N               = 80;     % number of timesteps to render
-SOUND           = true;    % use audio feedback for support
+SOUND           = false;    % use audio feedback for support
 REAL_TIME_INPUT = false;   % use realtime input data
 TRAINING        = true;   % use previously generated input from csv
-
+SAVE_DATA       = false;   % save bf and hr to csv files
 
 % -------------------------
 % PLOTTING - realtime
@@ -64,8 +64,8 @@ TRAINING_BF = c3_bf;    TRAINING_HR = c3_hr;
 
 disp('Running model...'); 
 if REAL_TIME_INPUT && TRAINING, TRAINING = false; disp('-- WARNING not TRAINING --'); end;
-if TRAINING, disp('using .cvs data'); end;
-model = l2('model');
+if TRAINING, disp('using .csv data'); end;
+model = l2('model_rt');
 tic;
 
 % model.simulate(N, 'COM5');
@@ -82,7 +82,6 @@ toc % time = toc; disp('time/N');   disp(time/N);
 % -------------------------
 
 model.plot({...
-    'hr','breathing_f',...
     'chest_c',...
     'graph_bel_starting_dir'...
     'graph_bel_hr'...

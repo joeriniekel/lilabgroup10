@@ -17,18 +17,8 @@ end
 
 % ! bij waardes uit scenario altijd (t) gebruiken ipv (t+1)
 
-%todo: geen prev_... concepten gebruiken
-
-function result = mind( model, trace, parameters, t )
-  % dir = trace(t).support.arg{1};
-  dir = '4 none';
-  result = {t+1, 'mind', {dir}};
-end
-
 function result = hr( model, trace, parameters, t )
-   hr = 0;
-  global TRAINING;
-  if TRAINING,    hr = 0;  end; %bypass the domain model
+  hr = 0;
   result = {t+1, 'hr', hr};
 end
 
@@ -36,7 +26,7 @@ function result = hr_pos( model, trace, parameters, t )
   % hr_pos = the voltage of the input sensor
   floor = 1; % param
 
-  global TRAINING;
+  global TRAINING
   if TRAINING
     global TRAINING_HR
     pos = TRAINING_HR(t);
@@ -60,7 +50,24 @@ function result = breathing_f( model, trace, parameters, t )
   result = {t+1, 'breathing_f', breathing_f};
 end
 
+function result = chest_c( model, trace, parameters, t )
+  curr_chest_c = 0;
+  % new
+  global TRAINING;
+  global TRAINING_BF;
+  if TRAINING,    curr_chest_c = TRAINING_BF(t)^2 * 10 + 50;  end;
+    %todo deze formula uitleggen of uitwerken
 
+  % real time graphs
+  global CHEST_Y1 PLOT_CHEST1  %CHEST_Y2  RT_CHEST2
+  CHEST_Y1(1) = [];
+  CHEST_Y1(end+1) = curr_chest_c - 50;
+  % CHEST_Y2(end+1) = curr_chest_c;
+  refreshdata(PLOT_CHEST1 ); %RT_CHEST1
+  % refreshdata(RT_CHEST2);
+
+  result = {t+1, 'chest_c', curr_chest_c};
+end
 %
 %
 %
@@ -486,27 +493,28 @@ function result = bel_anxiety( model, trace, parameters, t )
   c         = model.parameters.default.bf_c;
   pa_time   = 1/dt * model.parameters.default.pa_time;
 
-  % script om data op te slaan ---------------------------------------------
-  % global N TRAINING
-  % if t == N - 1 && TRAINING
-  %   bb = [];
-  %   hrr = [];
-  %   for i=1:t
-  %       bf3 = l2.getall(trace, i+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  %       hr3 = l2.getall(trace, i+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-  %       bb(i) = bf3;
-  %       hrr(i) = hr3;
-  %   end
-  %   disp('saving traces')
-  %   ra = int2str(rand(1,1)*100);
-  %   name1 = strcat('data/calculated/bb_c1_v',ra,'.csv');
-  %   name2 = strcat('data/calculated/hr_c1_v',ra,'.csv');
-  %   csvwrite(name1,bb);
-  %   csvwrite(name2,hrr);
-  %   %   xlswrite('data/hee.xls',bb);
-  % end
   % ------------------------------------------------------------------------
-
+  % script to save data (hr + bf) to csv
+  % ------------------------------------------------------------------------
+  global N TRAINING
+  if SAVE_DATA && t == N - 1
+    bb = [];
+    hrr = [];
+    for i=1:t
+        bf3 = l2.getall(trace, i+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+        hr3 = l2.getall(trace, i+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+        bb(i) = bf3;
+        hrr(i) = hr3;
+    end
+    disp('saving traces')
+    ra = int2str(rand(1,1)*100);
+    name1 = strcat('data/calculated/bb_c1_v',ra,'.csv');
+    name2 = strcat('data/calculated/hr_c1_v',ra,'.csv');
+    csvwrite(name1,bb);
+    csvwrite(name2,hrr);
+  end
+  % ------------------------------------------------------------------------
+  % ------------------------------------------------------------------------
 
   if t < pa_time
     % the adaption model needs a few timesteps to calculate the parameters for the
