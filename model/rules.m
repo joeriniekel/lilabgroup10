@@ -375,10 +375,15 @@ end
 function result = bel_starting_dir( model, trace, parameters, t )
   prev_chest_c = l2.getall(trace, t, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
   curr_chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
-  margin       = model.parameters.default.chest_c_margin;
-  if curr_chest_c > prev_chest_c + margin
+  margin       = model.parameters.default.chest_c_margin; % percentage of the range
+  max     = model.parameters.default.bel_max_chest_c;
+  min     = model.parameters.default.bel_min_chest_c;
+  range   = max - min;
+  real_margin  = margin * range;
+
+  if curr_chest_c > prev_chest_c + real_margin
     chest_dir = '1 in';
-  elseif curr_chest_c < prev_chest_c - margin
+  elseif curr_chest_c < prev_chest_c - real_margin
   	chest_dir = '3 out';
   else
   	chest_dir = '2 rest';
@@ -705,15 +710,11 @@ function result = bel_anxiety( model, trace, parameters, t )
   pa_time   = 1/dt * model.parameters.default.pa_time;
 
   % script om data op te slaan ---------------------------------------------
-  % global N
-  % if t == N - 1
-  %   % hr
-  %   % bf
+  % global N TRAINING
+  % if t == N - 1 && TRAINING
   %   bb = [];
   %   hrr = [];
   %   for i=1:t
-  %       % b2 = trace(i).b2.arg{1};
-  %       % hr = trace(i).hr2.arg{1};
   %       bf3 = l2.getall(trace, i+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   %       hr3 = l2.getall(trace, i+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   %       bb(i) = bf3;
@@ -728,6 +729,7 @@ function result = bel_anxiety( model, trace, parameters, t )
   %   %   xlswrite('data/hee.xls',bb);
   % end
   % ------------------------------------------------------------------------
+
 
   if t < pa_time
     % the adaption model needs a few timesteps to calculate the parameters for the
@@ -959,7 +961,7 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
     a     = model.parameters.default.bf_a;
     b     = model.parameters.default.bf_b;
     c     = model.parameters.default.bf_c;
-    margin = 1;
+    margin = 5;
 
     if time>t,time=t;end;
     hrs = [];

@@ -1,6 +1,6 @@
 clear all; close all;clc
 global N PLOT_BF HR_AXIS BF_AXIS
-N = 498;
+N = 100;
 HR_AXIS = 40:200;   BF_AXIS = 0.01*HR_AXIS;
 
 subplot(1,2,1);     PLOT_BF = plot(HR_AXIS,BF_AXIS);    axis([0 200 0 4]);
@@ -16,7 +16,7 @@ c3_bf = csvread('data/17-05 conditie 3 angst/bb_v32.csv');
 c3_hr = csvread('data/17-05 conditie 3 angst/hr_v32.csv');
     % als deze worden gebruikt worden de domein-waardes genegeerd
     % dt = 0.18;
-TRAINING    = false;
+TRAINING    = true;
 TRAINING_BF = c1_bf;    TRAINING_HR = c1_hr;
 
 % global RT_CHEST YY
