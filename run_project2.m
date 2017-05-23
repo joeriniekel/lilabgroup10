@@ -1,13 +1,49 @@
 clear all; close all; clc
-global N PLOT_BF HR_AXIS BF_AXIS
-N = 498;
-HR_AXIS = 40:200;   BF_AXIS = 0.01*HR_AXIS;
+global N REAL_TIME_INPUT TRAINING SOUND
 
-subplot(1,2,1);     PLOT_BF = plot(HR_AXIS,BF_AXIS);    axis([0 200 0 4]);
+% -------------------------
+% CONFIG
+% -------------------------
+
+N               = 80;     % number of timesteps to render
+SOUND           = true;    % use audio feedback for support
+REAL_TIME_INPUT = false;   % use realtime input data
+TRAINING        = true;   % use previously generated input from csv
+
+
+% -------------------------
+% PLOTTING - realtime
+% -------------------------
+
+global PLOT_BF HR_AXIS BF_AXIS
+HR_AXIS = 40:200;   BF_AXIS = 0.01*HR_AXIS;
+subplot(2,2,1);     PLOT_BF = plot(HR_AXIS,BF_AXIS);    axis([0 200 0 4]);
 %xlabel='Heart Rate';ylabel='Breathing Frequency';Title='Relation between hr & bf';
 linkdata on
 
-global TRAINING TRAINING_BF TRAINING_HR
+
+% global RT_CHEST YY
+% x = linspace(0,8); YY = sin(x);
+% RT_CHEST = plot(x,YY);
+% h.XDataSource = 'x';  h.YDataSource = 'YY'; linkdata on
+global CHEST_Y1 PLOT_CHEST1  %CHEST_Y2 RT_CHEST2
+CHEST_Y1 = zeros([1,100]); % CHEST_Y2 = [0]; subplot(1,2,2); 
+subplot(2,2,2);
+PLOT_CHEST1 = stem(CHEST_Y1);linkdata on
+% RT_CHEST1 = plot(CHEST_Y1);linkdata on
+% subplot(1,2,1); RT_CHEST2 = plot(CHEST_Y2);linkdata on
+% refreshdata(RT_CHEST1);
+
+global PLOT_COLOR
+subplot(2,2,3); PLOT_COLOR = area([1 1]);
+PLOT_COLOR(1).FaceColor = [0 0 0];% red
+% PLOT_COLOR(1).FaceColor = [0 0 1];% blue
+
+% -------------------------
+% CSV data
+% -------------------------
+
+global TRAINING_BF TRAINING_HR
 c1_bf = csvread('data/17-05 conditie 1 rust/bb_v69.csv');%499
 c1_hr = csvread('data/17-05 conditie 1 rust/hr_v69.csv');
 c2_bf = csvread('data/17-05 conditie 2 sport/bb_v81.csv');
@@ -16,30 +52,35 @@ c3_bf = csvread('data/17-05 conditie 3 angst/bb_v32.csv');
 c3_hr = csvread('data/17-05 conditie 3 angst/hr_v32.csv');
     % als deze worden gebruikt worden de domein-waardes genegeerd
     % dt = 0.18;
-TRAINING    = false;
+    
 TRAINING_BF = c3_bf;    TRAINING_HR = c3_hr;
 
-% global RT_CHEST YY
-% x = linspace(0,8); YY = sin(x);
-% RT_CHEST = plot(x,YY);
-% h.XDataSource = 'x';  h.YDataSource = 'YY'; linkdata on
-global CHEST_Y1 PLOT_CHEST1  %CHEST_Y2 RT_CHEST2
-CHEST_Y1 = zeros([1,100]); % CHEST_Y2 = [0]; subplot(1,2,2); 
-subplot(1,2,2);
-PLOT_CHEST1 = stem(CHEST_Y1);linkdata on
-% RT_CHEST1 = plot(CHEST_Y1);linkdata on
-% subplot(1,2,1); RT_CHEST2 = plot(CHEST_Y2);linkdata on
-% refreshdata(RT_CHEST1);
 
 
-disp('Running model...')
-model = l2('model');tic
-%model = l2('model','COM3');tic
-model.simulate(N, 'COM5');
-%model.simulate(N,'default','default');
+
+% -------------------------
+% RUN
+% -------------------------
+
+disp('Running model...'); 
+if REAL_TIME_INPUT && TRAINING, TRAINING = false; disp('-- WARNING not TRAINING --'); end;
+if TRAINING, disp('using .cvs data'); end;
+model = l2('model');
+tic;
+
+% model.simulate(N, 'COM5');
+model.simulate(N,'default','default');
+
 disp('Simulation finished');
-time = toc; disp('time/N');   disp(time/N);
-%model.plot();
+toc % time = toc; disp('time/N');   disp(time/N);
+
+
+
+
+% -------------------------
+% PLOT full simulation
+% -------------------------
+
 model.plot({...
     'hr','breathing_f',...
     'chest_c',...
