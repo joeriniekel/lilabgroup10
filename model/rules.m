@@ -1017,19 +1017,23 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
       y2 = bfs(2);
       if x1 > x2 + margin || x1 < x2 - margin
         % a = 4.2857e-04 % when filled in in the 'advanced' formula
-        b2 = (y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2)/(x1 - x2);
-        c2 = y1 - a*(lhr - x1)^2 + ((lhr - x1)*(y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2))/(x1 - x2);
+        %b2 = (y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2)/(x1 - x2);
+        %c2 = y1 - a*(lhr - x1)^2 + ((lhr - x1)*(y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2))/(x1 - x2);
 
-        b = b + s * (b2 - b);
+        %b2 = (y1 - y2)/(x1 - x2);
+        c2 = y1 + ((lhr - x1)*(y1 - y2))/(x1 - x2);
+
+
+        % b = b + s * (b2 - b);
         c = c + s * (c2 - c);
 
-        if b2 > 10 || c2 > 10 || b2 < -10
-          x1
-          x2
-        end
+        % if b2 > 10 || c2 > 10 || b2 < -10
+        %   x1
+        %   x2
+        % end
 
         % model.parameters.default.bf_a = a;
-        model.parameters.default.bf_b = b;
+        % model.parameters.default.bf_b = b;
         model.parameters.default.bf_c = c;
 
         global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C

@@ -51,9 +51,10 @@ default (
   %  %0.08
   anxiety_br_i;       0.005
 
-  default_a;          1.0075e-04
-  default_b;          -0.0055
-  default_c;          0.5899
+  default_a;          0
+  default_b;          0.0033
+  default_c;          0.4255
+
   hr_breathing_exp;   1.0
   breathing_anxiety;  1.0
 
@@ -66,20 +67,19 @@ default (
 
   % breathing f
   % a = 4.2857e-04 % experiment doen...
-  bf_a;               1.0075e-04
-  bf_b;               -0.0055
-  bf_c;               0.5899
-
-  n_breathing_cycles; 3;
-  max_interval_t;     120;
-  floor_bf;           0.1;
-  low_br_int;         0.4;
+  bf_a;               0
+  bf_b;               0.0033
+  bf_c;               0.4255
+  n_breathing_cycles; 3
+  max_interval_t;     120
+  floor_bf;           0.1
+  low_br_int;         0.4
 
   % hr
   n_hr_cycles; 3;
 
   % PARAMETER ADAPTION MODEL
-  pa_speed;               0.1
+  pa_speed;               0.01
   pa_time;                10
     % 40
   pa_skip_n_time_steps;   20
