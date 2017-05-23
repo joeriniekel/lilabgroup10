@@ -50,7 +50,7 @@ c3_hr = csvread('data/17-05 conditie 3 angst/hr_v32.csv');
     % als deze worden gebruikt worden de domein-waardes genegeerd
     % dt = 0.18;
     
-TRAINING_BF = c3_bf;    TRAINING_HR = c3_hr;
+TRAINING_BF = c2_bf;    TRAINING_HR = c2_hr;
 
 
 

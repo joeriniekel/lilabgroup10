@@ -1,3 +1,4 @@
+%%
 prev_chest_c = 79.8;
 avg_chest_c = 70;
 range = 19;
@@ -30,3 +31,60 @@ plot(t,sin(t*0.5*pi))
 %inverse sinus
 plot(t,asin(t)/pi * 2)
 
+
+%%
+clc
+clear all
+x = linspace(-100,100);
+a = 0.001; b = 0.0031; c = 10;
+f1 = a*x.^2 + b*x + c;
+plot(x,f1)
+syms x a b c
+f1 = a*x.^2 + b*x + c
+f2 = diff(f1)
+% b + 2*a*x
+f3 = b + 2*a*x;
+%%
+clear all
+% x = linspace(-100,100);
+% a = 0.001; b = 0.0031; c = 10;
+% f3 = b + 2*a*x;
+% find(min(f3) == f3)
+% plot(x,f3)
+
+
+mini = 30;
+maxi = 250;
+x = 30:2:250; %linspace
+a = 0.001; b = 0.0031; c = 10;
+f3 = b + 2*a*x;
+min([1 1]);
+min(f3)
+
+% index = find(min(f2) == f2)
+% f1(index)
+% x(index)
+% f2 = simplify(f2)
+% pretty(f2)
+% crit_pts = solve(f1)
+%  -(b + (b^2 - 4*a*c)^(1/2))/(2*a)
+%  -(b - (b^2 - 4*a*c)^(1/2))/(2*a)
+%%
+% function result = red_green_graph(model, trace, parameters, t)
+   starting_dir = l2.getall(trace, t+1, 'desire', predicate('starting_dir', NaN)).arg{1}.arg{1};
+   image=zeros(300,400,3);
+   if starting_dir == '1 in'
+	image(:,:,2)=1; %green
+   elseif starting_dir == '3 out'
+   	image(:,:,1)=1; %red
+   else image(:,:,3)=1; %blue
+   end
+   figure, imshow(image)
+% end
+
+%%
+image=zeros(300,400,3);
+image(:,:,2)=1; %green
+image(:,:,1)=1; %red
+image(:,:,3)=1; %blue
+figure, imshow(image)

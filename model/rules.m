@@ -1052,14 +1052,9 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
   skip  = model.parameters.default.pa_skip_n_time_steps;
   %skip the first 10 timesteps
   if ~assessment && t>3+skip
-    lhr   = model.parameters.default.lhr;
-    dt    = model.parameters.default.dt;
-    time  = 1/dt * model.parameters.default.pa_time; % the review time
-    s_b     = model.parameters.default.pa_speed_b;
-    s_c     = model.parameters.default.pa_speed_c;
-    a     = model.parameters.default.bf_a;
-    b     = model.parameters.default.bf_b;
-    c     = model.parameters.default.bf_c;
+    lhr    = model.parameters.default.lhr;
+    dt     = model.parameters.default.dt;
+    time   = 1/dt * model.parameters.default.pa_time; % the review time
     margin = 5;
 
     if time>t,time=t;end;
@@ -1083,22 +1078,61 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
       %todo: hier een interval/average nemen
 
       if x1 > x2 + margin || x1 < x2 - margin
+        % update the necessary params
+        pa_lim = model.parameters.default.pa_time;
+        a      = model.parameters.default.bf_a;
+        b      = model.parameters.default.bf_b;
+        c      = model.parameters.default.bf_c;
+        s_b    = model.parameters.default.pa_speed_b;
+        s_c    = model.parameters.default.pa_speed_c;
+
         % a = 1.5505e-04 % when filled in in the 'advanced' formula
         b2 = (- a*x1^2 + a*x2^2 + y1 - y2)/(x1 - x2)
         c2 = (a*x1^2*x2 - a*x1*x2^2 + y2*x1 - y1*x2)/(x1 - x2)
 
-        b = b + s_b * (b2 - b);
-        c = c + s_c * (c2 - c);
+        % relative difference of the change
+        rel_d_b = (b2 - b) / b;
+        rel_d_c = (c2 - c) / c;
 
-        % model.parameters.default.bf_a = a;
-        model.parameters.default.bf_b = b;
-        model.parameters.default.bf_c = c;
+        rel_d_c
+        % keep diffs in range [-pa_lim,pa_lim]
+        if rel_d_b > pa_lim
+          rel_d_b = pa_lim;
+        elseif rel_d_b < -1*pa_lim
+          rel_d_b = -1*pa_lim;
+        end
+        if rel_d_c > pa_lim
+          rel_d_c = pa_lim;
+        elseif rel_d_c < -1*pa_lim
+          rel_d_c = -1*pa_lim;
+        end
 
-        global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
-        BF_AXIS = a*HR_AXIS.^2+b*HR_AXIS+c;
-        % BF_A = BF_A+0.1;
-        % BF_AXIS = BF_A*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
-        refreshdata(PLOT_BF)
+        % apply differences:  p = old p * 1 + (factor * relativ change)
+        b = b * 1 + (s_b * rel_d_b);
+        c = c * 1 + (s_c * rel_d_c);
+        c
+
+        % test the params (bf cannor be < 0)
+        mini = 30;
+        maxi = 250;
+        x = 30:3:250; %linspace
+        f1 = a*x.^2 + b*x + c;
+        % f3 = b + 2*a*x;
+        % index = find(min(f3) == f3)
+        % lowest = f1(index) % when a>0
+        if min(f1) > 0
+          %change params
+          model.parameters.default.bf_b = b;
+          model.parameters.default.bf_c = c;
+          % plot/update graph
+          global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
+          BF_AXIS = a*HR_AXIS.^2+b*HR_AXIS+c;
+          % BF_A = BF_A+0.1;
+          % BF_AXIS = BF_A*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
+          refreshdata(PLOT_BF)
+        else
+          disp('PA: f1 < 0')
+        end
       end
     end
   end
@@ -1168,14 +1202,14 @@ end
 function result = adaptions_chest_c_range( model, trace, parameters, t )
   %adaption min and max chest c
   chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
-  max     = model.parameters.default.bel_max_chest_c;
-  min     = model.parameters.default.bel_min_chest_c;
+  maxi     = model.parameters.default.bel_max_chest_c;
+  mini     = model.parameters.default.bel_min_chest_c;
   change = false;
-  if chest_c > max
+  if chest_c > maxi
     model.parameters.default.bel_max_chest_c = chest_c;
     change = true;
   end
-  if chest_c < min
+  if chest_c < mini
     model.parameters.default.bel_min_chest_c = chest_c;
     change = true;
   end
