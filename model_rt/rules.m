@@ -53,10 +53,16 @@ end
 function result = chest_c( model, trace, parameters, t )
   curr_chest_c = 0;
   % new
-  global TRAINING;
-  global TRAINING_BF;
+  global REAL_TIME_INPUT TRAINING TRAINING_BF
+
   if TRAINING,    curr_chest_c = TRAINING_BF(t)^2 * 10 + 50;  end;
+    %todo ^2 weghalen + testen
     %todo deze formula uitleggen of uitwerken
+  if REAL_TIME_INPUT
+    br = trace(t).breathingvalue.arg{1};
+    curr_chest_c = br * 10 + 50;
+  end
+
 
   % real time graphs
   global CHEST_Y1 PLOT_CHEST1  %CHEST_Y2  RT_CHEST2
@@ -254,8 +260,8 @@ end
 
 %new
 function result = bel_hr( model, trace, parameters, t )
-  global TRAINING
-  if ~TRAINING
+  global TRAINING REAL_TIME_INPUT
+  if ~TRAINING && ~REAL_TIME_INPUT
     hr = l2.getall(trace, t+1, 'observe', predicate('hr', NaN)).arg{1}.arg{1};
   else
     % calculate the believed heart rate
@@ -332,15 +338,18 @@ end
 function result = bel_used_chest_range( model, trace, parameters, t )
   %todo: timesteps (review) afhankelijk maken van bf
   %       zodat er naar de laatste 3 breathing cycles gekeken wordt
+  bf        = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   min       = model.parameters.default.bel_min_chest_c; % believed min
   max       = model.parameters.default.bel_max_chest_c; % believed max
   dt        = model.parameters.default.dt;
-  time      = 1/dt * model.parameters.default.chest_range_time;
   max_range = max - min;
   highest   = 0;
   lowest    = Inf;
 
-  if time > t
+  if bf < 0.1, bf = 0.1; end;
+  time      = 1/dt * 1/bf * model.parameters.default.chest_range_cycles;%new2
+
+  if time > t || t < 10 %new2
     relative_range = 1;
   else
     for i=t:-1:t-time
@@ -352,6 +361,8 @@ function result = bel_used_chest_range( model, trace, parameters, t )
     relative_range = used_range / max_range;
     if relative_range > 1, relative_range = 1;  end;
   end
+
+  relative_range
 
   result = {t+1, 'belief', predicate('used_chest_range',relative_range)};
 end
@@ -494,10 +505,10 @@ function result = bel_anxiety( model, trace, parameters, t )
   pa_time   = 1/dt * model.parameters.default.pa_time;
 
   % ------------------------------------------------------------------------
-  % script to save data (hr + bf) to csv
+  % script to save data (hr + bf) to csv %new2
   % ------------------------------------------------------------------------
-  global N TRAINING
-  if SAVE_DATA && t == N - 1
+  global N TRAINING SAVE_DATA
+  if SAVE_DATA && t == N - 1 %new2
     bb = [];
     hrr = [];
     for i=1:t
@@ -542,6 +553,7 @@ function result = bel_anxiety( model, trace, parameters, t )
     anxiety = prev_anxiety * decay;
   end
 
+  if t<50, anxiety = 0; end;
   if anxiety > 100, anxiety = 100; end;
   result = {t+1, 'belief', predicate('anxiety', anxiety)};
 end
@@ -927,8 +939,9 @@ function result = adaption_dt( model, trace, parameters, t )
   tic;
 
   global REAL_TIME_INPUT
-  if REAL_TIME_INPUT
-    if dt > measured_dt
+  if REAL_TIME_INPUT && t > 5
+    if measured_dt > dt
+      if measured_dt > 2, measured_dt = 1.5; disp('measured_dt > 2!'); end;
       model.parameters.default.dt = measured_dt + dt_plus;
       disp('dt++')
       measured_dt
@@ -936,6 +949,9 @@ function result = adaption_dt( model, trace, parameters, t )
       % measured_dt <= dt
       % disp(measured_dt - dt)
       pause(dt - measured_dt);
+      if (dt - measured_dt)/dt > 0.5
+        disp('pausing too long')
+      end
     end
     if mod(t,100) == 0
       disp('current dt:')

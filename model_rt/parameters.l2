@@ -31,7 +31,7 @@
 
 default (
 
-  dt;                 0.18
+  dt;                 0.01
   bhr;                90
   lhr;                40
   max_chest_c;        80
@@ -64,7 +64,7 @@ default (
   % ANALYSIS MODEL
   chest_c_margin;     0.05
   breathing_dir_mode; 1
-  chest_range_time;   10
+  chest_range_cycles; 1.5
   bel_max_chest_c;    0
   bel_min_chest_c;    Inf
 

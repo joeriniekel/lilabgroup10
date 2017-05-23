@@ -70,9 +70,6 @@ default (
 
 
 
-
-
-
-  %v2{10};                 [1:Inf]
   %lightvalue{rtinput_lightsensor}; [1:Inf]
+  breathingvalue{rtinput_breathingsensor}; [1:Inf]
 )

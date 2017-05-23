@@ -2,6 +2,8 @@ observe;            {OBSERVE}
 belief;             {BELIEF}
 desire;             {DESIRE}
 
+breathingvalue;     REAL
+
 % -------------------------
 % DOMAIN MODEL
 % -------------------------
@@ -79,6 +81,4 @@ graph_bel_phi;								REAL
 
 
 % (oud, voor real time input)
-
 %lightvalue;                 REAL
-%light;                      SWITCH
