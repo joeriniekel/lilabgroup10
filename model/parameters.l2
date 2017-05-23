@@ -51,9 +51,9 @@ default (
   %  %0.08
   anxiety_br_i;       0.005
 
-  default_a;          1.0e-05
-  default_b;          0.004
-  default_c;          0.3
+  default_a;          1.0075e-04
+  default_b;          -0.0055
+  default_c;          0.5899
   hr_breathing_exp;   1.0
   breathing_anxiety;  1.0
 
@@ -66,9 +66,9 @@ default (
 
   % breathing f
   % a = 4.2857e-04 % experiment doen...
-  bf_a;               1.0e-05
-  bf_b;               0.004
-  bf_c;               0.3
+  bf_a;               1.0075e-04
+  bf_b;               -0.0055
+  bf_c;               0.5899
 
   n_breathing_cycles; 3;
   max_interval_t;     120;
@@ -84,8 +84,4 @@ default (
     % 40
   pa_skip_n_time_steps;   20
 
-
-  %acc_interval;       5
-  %acc_margin;         0.01
-  %pattern_interval;   10
 )

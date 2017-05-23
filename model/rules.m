@@ -744,24 +744,24 @@ function result = bel_anxiety( model, trace, parameters, t )
   pa_time   = 1/dt * model.parameters.default.pa_time;
 
   % script om data op te slaan ---------------------------------------------
-  global N TRAINING
-  if t == N - 1 && TRAINING
-    bb = [];
-    hrr = [];
-    for i=1:t
-        bf3 = l2.getall(trace, i+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-        hr3 = l2.getall(trace, i+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-        bb(i) = bf3;
-        hrr(i) = hr3;
-    end
-    disp('saving traces')
-    ra = int2str(rand(1,1)*100);
-    name1 = strcat('data/calculated/bb_c1_v',ra,'.csv');
-    name2 = strcat('data/calculated/hr_c1_v',ra,'.csv');
-    csvwrite(name1,bb);
-    csvwrite(name2,hrr);
-    %   xlswrite('data/hee.xls',bb);
-  end
+  % global N TRAINING
+  % if t == N - 1 && TRAINING
+  %   bb = [];
+  %   hrr = [];
+  %   for i=1:t
+  %       bf3 = l2.getall(trace, i+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  %       hr3 = l2.getall(trace, i+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+  %       bb(i) = bf3;
+  %       hrr(i) = hr3;
+  %   end
+  %   disp('saving traces')
+  %   ra = int2str(rand(1,1)*100);
+  %   name1 = strcat('data/calculated/bb_c1_v',ra,'.csv');
+  %   name2 = strcat('data/calculated/hr_c1_v',ra,'.csv');
+  %   csvwrite(name1,bb);
+  %   csvwrite(name2,hrr);
+  %   %   xlswrite('data/hee.xls',bb);
+  % end
   % ------------------------------------------------------------------------
 
 
@@ -1023,7 +1023,7 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
         b = b + s * (b2 - b);
         c = c + s * (c2 - c);
 
-        if b2 > 50 || c2 > 50
+        if b2 > 10 || c2 > 10 || b2 < -10
           x1
           x2
         end
@@ -1043,6 +1043,65 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
   result = {t+1, 'adaption_1', assessment};
 end
 
+% function result = adaptions_hr_bf( model, trace, parameters, t )
+%   assessment = trace(t+1).assessment.arg{1};
+%   skip  = model.parameters.default.pa_skip_n_time_steps;
+%   %skip the first 10 timesteps
+%   if ~assessment && t>3+skip
+%     lhr   = model.parameters.default.lhr;
+%     dt    = model.parameters.default.dt;
+%     time  = 1/dt * model.parameters.default.pa_time; % the review time
+%     s     = model.parameters.default.pa_speed;
+%     a     = model.parameters.default.bf_a;
+%     b     = model.parameters.default.bf_b;
+%     c     = model.parameters.default.bf_c;
+%     margin = 5;
+
+%     if time>t,time=t;end;
+%     hrs = [];
+%     bfs = [];
+%     for i=1:3
+%       % make random sample of the last x timesteps
+%       sample = t+1 - round(time * rand);
+%       hr = l2.getall(trace, sample, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+%       bf = l2.getall(trace, sample, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+%       hrs(i) = hr;
+%       bfs(i) = bf;
+%     end
+%     if sum(hrs)>lhr*3 && sum(bfs) > 0 && t > 30
+%       % hrs
+%       % bfs
+%       x1 = hrs(1);
+%       x2 = hrs(2);
+%       y1 = bfs(1);
+%       y2 = bfs(2);
+%       if x1 > x2 + margin || x1 < x2 - margin
+%         % a = 4.2857e-04 % when filled in in the 'advanced' formula
+%         b2 = (y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2)/(x1 - x2);
+%         c2 = y1 - a*(lhr - x1)^2 + ((lhr - x1)*(y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2))/(x1 - x2);
+
+%         b = b + s * (b2 - b);
+%         c = c + s * (c2 - c);
+
+%         if b2 > 10 || c2 > 10 || b2 < -10
+%           x1
+%           x2
+%         end
+
+%         % model.parameters.default.bf_a = a;
+%         model.parameters.default.bf_b = b;
+%         model.parameters.default.bf_c = c;
+
+%         global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
+%         BF_AXIS = a*HR_AXIS.^2+b*HR_AXIS+c;
+%         % BF_A = BF_A+0.1;
+%         % BF_AXIS = BF_A*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
+%         refreshdata(PLOT_BF)
+%       end
+%     end
+%   end
+%   result = {t+1, 'adaption_1', assessment};
+% end
 
 function result = adaptions_chest_c_range( model, trace, parameters, t )
   %adaption min and max chest c
