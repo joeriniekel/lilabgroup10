@@ -1,0 +1,96 @@
+% parameter tuning...
+% DOMAIN MODEL
+% dt                [0;1]
+%   the amount of seconds simulated per time step
+%     0.1 is realistic
+%     1.0 results in faster rendering
+% bhr               basic heart rate in bpm
+% lhr               lowest possible hr, (safety limit)
+% max_chest_c       max chest circumfence in cm
+% min_chest_c       max chest circumfence in cm
+% max_chest_range   = max_chest_c - min_chest_c
+%   the actual chest range
+% high_bf           [0;10]
+%   a value for a breathing frequency that is considered extremely high
+% disfac            [0;10]    trait for anxiety
+% disfac_a_reg      [0;1]    trait for anxiety regulation
+% disfac_hr_var     [-20;20]  trait for hr variability
+% ...
+
+% ANALYSIS MODEL
+% breathing_dir_mode  = option to let (believed) breathing cycles start at '1 in' or '3 out'
+%                        the value can be 1 or 3
+% breathing frequency
+%  n_breathing_cycles  = number of complete breathing cycles
+%  max_interval_t      = in s, dependent of dt
+% breathing f acceleration
+%  acc_interval        = number of timeframes used to search for accelerations
+%  acc_margin          = sensitivity of search
+% breathing f pattern
+%  pattern_interval    = number of timeframes used to search for accelerations
+
+default (
+
+  dt;                 0.18
+  bhr;                90
+  lhr;                40
+  max_chest_c;        80
+  min_chest_c;        60
+  max_chest_range;    20
+  high_bf;            4
+  disfac;             1
+  disfac_a_reg;       0.75
+  disfac_hr_var;      0.1
+
+  %factors for the strength of relations between concepts
+  anxiety_decay;      0.8
+  anxiety_bf;         0.01
+  anxiety_hr;         0.001
+  anxiety_hr_var;     0.1
+  %hr_breathing;       0.08
+  %  %0.08
+  anxiety_br_i;       0.005
+
+  %default_a;          0
+  %default_b;          0.0033
+  %default_c;          0.4255
+  default_a;          1.5505e-04
+  default_b;          -0.0204
+  default_c;          1.1615
+
+  hr_breathing_exp;   1.0
+  breathing_anxiety;  1.0
+
+  % ANALYSIS MODEL
+  chest_c_margin;     0.05
+  breathing_dir_mode; 1
+  chest_range_time;   10
+  bel_max_chest_c;    0
+  bel_min_chest_c;    Inf
+
+  % breathing f
+  % a = 4.2857e-04 % experiment doen...
+  %bf_a;               0
+  %bf_b;               0.0033
+  %bf_c;               0.4255
+  bf_a;               1.5505e-04
+  bf_b;               -0.0204
+  bf_c;               1.1615
+  n_breathing_cycles; 3
+  max_interval_t;     120
+  floor_bf;           0.1
+  low_br_int;         0.4
+
+  % hr
+  n_hr_cycles; 3;
+
+  % PARAMETER ADAPTION MODEL
+  pa_lim;                 0.01
+  pa_speed_b;             0.01
+  pa_speed_c;             0.1
+  pa_time;                10
+    % 40
+  pa_skip_n_time_steps;   20
+  dt_plus;                0.01
+
+)

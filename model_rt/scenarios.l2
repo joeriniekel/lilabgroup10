@@ -1,0 +1,78 @@
+% Note that scenarios are independent from 'real' simulated time (dt)
+
+% hr              hr  in bpm
+% breathing f     f   in Hz (sˆ-1)
+% physical_state  ps  factor for increase in hr
+
+%sitfac{10};             [10:100]
+  %bij [5:Inf] geeft hij alsnog een dubbele lijn
+
+% breathing_intensity   higher intensity means that subject is breathing deeper
+
+
+
+default (
+  % start with increase in ps
+  % later, increase the situational factors
+  %   in peaks to simulate fear/stress instead of anxiet
+  sitfac{0};              [1:Inf]
+  %sitfac{90};            [31:40]
+  %sitfac{90};            [41:90]
+  %sitfac{90};            [91:150]
+  %sitfac{50};            [151:500]
+
+  ps{01};   	            [1:Inf]
+  %ps{01};   	            [11:30]
+  %ps{01};   	            [31:500]
+
+  anxiety{0};             [1]
+  hr{90};                 [1]
+  breathing_f{0.1};       [1]
+  used_chest_range{20};   [1]
+  chest_c{65};            [1]
+
+  dispos_br_i{0.99};      [1:Inf]
+  %breathing_intensity{0.99};  [1:Inf]
+  starting_dir{1 in};         [1]
+  phase_shift{0};             [1]
+  cycle_time{1};              [1]
+  support{4 none};            [1:2]
+  hr_pos{false};                  [1]
+
+  assessment{false};          [1]
+  %mind{4 none};               [1]
+
+
+  % beliefs
+    belief{chest_c{10}};        [1]
+    belief{starting_dir{1 in}}; [1]
+    belief{hr{70}};             [1]
+    belief{d_hr{0}};            [1]
+    belief{d_bf{0}};            [1]
+    belief{anxiety{0}};         [1]
+
+    % beliefs used by support
+    belief{phase_shift{0}};     [1]
+    %belief{relative_c{0}};      [1]
+    belief{breathing_f{0}};     [1]
+    belief{phase_shift{0}};     [1]
+
+  % desires
+    desire{breathing_f{1}};     [1]
+    desire{starting_dir{1 in}}; [1]
+    %?
+
+
+  graph_breathing_f_error{0};   [1:Inf]
+  graph_breathing_f_diff{0};    [1:Inf]
+    %the zero-line
+
+
+
+
+
+
+
+  %v2{10};                 [1:Inf]
+  %lightvalue{rtinput_lightsensor}; [1:Inf]
+)
