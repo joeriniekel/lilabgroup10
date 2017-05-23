@@ -1,6 +1,6 @@
 clear all; close all;clc
 global N PLOT_BF HR_AXIS BF_AXIS
-N = 100;
+N = 498;
 HR_AXIS = 40:200;   BF_AXIS = 0.01*HR_AXIS;
 
 subplot(1,2,1);     PLOT_BF = plot(HR_AXIS,BF_AXIS);    axis([0 200 0 4]);

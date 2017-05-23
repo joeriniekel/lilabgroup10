@@ -363,6 +363,8 @@ end
 
 function result = bel_chest_c( model, trace, parameters, t )
   chest_c = l2.getall(trace, t+1, 'observe', predicate('chest_c', NaN)).arg{1}.arg{1};
+  % t
+  % chest_c
   result = {t+1, 'belief', predicate('chest_c',chest_c)};
 end
 
@@ -372,21 +374,45 @@ function result = bel_hr_pos( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('hr_pos',hr_pos)};
 end
 
+%new
 function result = bel_starting_dir( model, trace, parameters, t )
-  prev_chest_c = l2.getall(trace, t, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
-  curr_chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
-  margin       = model.parameters.default.chest_c_margin; % percentage of the range
-  max     = model.parameters.default.bel_max_chest_c;
-  min     = model.parameters.default.bel_min_chest_c;
-  range   = max - min;
-  real_margin  = margin * range;
-
-  if curr_chest_c > prev_chest_c + real_margin
+  if t < 3
+    % t
     chest_dir = '1 in';
-  elseif curr_chest_c < prev_chest_c - real_margin
-  	chest_dir = '3 out';
+    % chest_dir
   else
-  	chest_dir = '2 rest';
+    % t >= 3
+    prev2_chest_c = l2.getall(trace,t-1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+    % prev2_chest_c
+    prev_chest_c = l2.getall(trace, t, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+    % prev_chest_c
+    
+    % curr = l2.getall(trace, t+2, 'belief', predicate('chest_c', NaN))
+    curr_chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
+    % curr_chest_c
+  
+    margin  = model.parameters.default.chest_c_margin; % percentage of the range
+    max     = model.parameters.default.bel_max_chest_c;
+    min     = model.parameters.default.bel_min_chest_c;
+    range   = max - min;
+    margin  = margin * range; %relative margin
+  
+    prev_chest_c = mean([prev2_chest_c prev_chest_c]);
+
+    % if curr_chest_c > prev_chest_c + margin && prev_chest_c > prev2_chest_c + margin
+    %   chest_dir = '1 in';
+    % elseif curr_chest_c < prev_chest_c - margin && prev_chest_c < prev2_chest_c - margin
+    %   chest_dir = '3 out';
+    % else
+    %   chest_dir = '2 rest';
+    % end
+    if curr_chest_c > prev_chest_c + margin
+      chest_dir = '1 in';
+    elseif curr_chest_c < prev_chest_c - margin
+    	chest_dir = '3 out';
+    else
+    	chest_dir = '2 rest';
+    end
   end
   result = {t+1, 'belief', predicate('starting_dir',{chest_dir})};
 end
@@ -405,7 +431,15 @@ function result = bel_breathing_f( model, trace, parameters, t )
   a = t;
   mode = 0;
   count = 1;          % matlab starts counting at 1 instead of 0
-  prev_val = l2.getall(trace, a+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  
+  % t
+  % prev_val3 = l2.getall(trace, a+1, 'belief', predicate('starting_dir', NaN))
+
+  if t == 1
+    prev_val = 0;
+  else
+    prev_val = l2.getall(trace, a+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  end
 
   if t <= n_cycles*2  % a minimum of n*2+1 time steps are required (in+out+...+next_in)
     breathing_f = 0;
@@ -710,24 +744,24 @@ function result = bel_anxiety( model, trace, parameters, t )
   pa_time   = 1/dt * model.parameters.default.pa_time;
 
   % script om data op te slaan ---------------------------------------------
-  % global N TRAINING
-  % if t == N - 1 && TRAINING
-  %   bb = [];
-  %   hrr = [];
-  %   for i=1:t
-  %       bf3 = l2.getall(trace, i+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-  %       hr3 = l2.getall(trace, i+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-  %       bb(i) = bf3;
-  %       hrr(i) = hr3;
-  %   end
-  %   disp('saving traces')
-  %   ra = int2str(rand(1,1)*100);
-  %   name1 = strcat('data/calculated/bb_c1_v',ra,'.csv');
-  %   name2 = strcat('data/calculated/hr_c1_v',ra,'.csv');
-  %   csvwrite(name1,bb);
-  %   csvwrite(name2,hrr);
-  %   %   xlswrite('data/hee.xls',bb);
-  % end
+  global N TRAINING
+  if t == N - 1 && TRAINING
+    bb = [];
+    hrr = [];
+    for i=1:t
+        bf3 = l2.getall(trace, i+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+        hr3 = l2.getall(trace, i+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+        bb(i) = bf3;
+        hrr(i) = hr3;
+    end
+    disp('saving traces')
+    ra = int2str(rand(1,1)*100);
+    name1 = strcat('data/calculated/bb_c1_v',ra,'.csv');
+    name2 = strcat('data/calculated/hr_c1_v',ra,'.csv');
+    csvwrite(name1,bb);
+    csvwrite(name2,hrr);
+    %   xlswrite('data/hee.xls',bb);
+  end
   % ------------------------------------------------------------------------
 
 
@@ -1087,7 +1121,11 @@ end
 % Starting direction, physical state, original_hr, anxiety
 
 function result = graph_bel_starting_dir( model, trace, parameters, t )
-  chest_pos = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  if t == 1
+    chest_pos = '1 in';
+  else
+    chest_pos = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  end
   result = {t+1, 'graph_bel_starting_dir', {chest_pos}};
 end
 function result = graph_bel_anxiety( model, trace, parameters, t )
