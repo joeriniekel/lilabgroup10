@@ -386,17 +386,17 @@ function result = bel_starting_dir( model, trace, parameters, t )
     % prev2_chest_c
     prev_chest_c = l2.getall(trace, t, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
     % prev_chest_c
-    
+
     % curr = l2.getall(trace, t+2, 'belief', predicate('chest_c', NaN))
     curr_chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
     % curr_chest_c
-  
+
     margin  = model.parameters.default.chest_c_margin; % percentage of the range
     max     = model.parameters.default.bel_max_chest_c;
     min     = model.parameters.default.bel_min_chest_c;
     range   = max - min;
     margin  = margin * range; %relative margin
-  
+
     prev_chest_c = mean([prev2_chest_c prev_chest_c]);
 
     % if curr_chest_c > prev_chest_c + margin && prev_chest_c > prev2_chest_c + margin
@@ -431,7 +431,7 @@ function result = bel_breathing_f( model, trace, parameters, t )
   a = t;
   mode = 0;
   count = 1;          % matlab starts counting at 1 instead of 0
-  
+
   % t
   % prev_val3 = l2.getall(trace, a+1, 'belief', predicate('starting_dir', NaN))
 
@@ -616,7 +616,7 @@ end
 function result = bel_relative_c( model, trace, parameters, t )
   % the previous value of chest_c,
   % independent from the breathing intensity
-  %  ?relative to the used chest_range
+  %  ?relative to the used chest_range?
   chest_c     = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
   min       = model.parameters.default.bel_min_chest_c; % believed min
   max       = model.parameters.default.bel_max_chest_c; % believed max
@@ -655,7 +655,7 @@ function result = bel_d_bf( model, trace, parameters, t )
 end
 %new
 function result = bel_d_hr( model, trace, parameters, t )
-  % keep track of whether hr is increasing or decreasing
+  % qualitative: keep track of whether hr is increasing or decreasing
   % prev_d  = l2.getall(trace, t, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
   prev_hr = l2.getall(trace, t, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
@@ -948,50 +948,58 @@ function result = support( model, trace, parameters, t )
   cycle_time = trace(t+1).cycle_time.arg{1};
 
   dt = model.parameters.default.dt;
-  
+
 
   assessment = true;
 
   if assessment
     starting_dir = starting_dir;
-    disp('assessment')
+    % disp('support actions')
   else
     starting_dir = '4 none';
   end
 
 
 
-  % amp=1;
-  % duration=N * 10; %(dt=0.2)
-  % fs=20500;  % sampling frequency
-  % global FREQ A
-  % FREQ=0;
-  % values=0:1/fs:duration;
-  % A=amp*sin(2*pi* FREQ*values);
-  % SON = sound(A);
+  global SOUND
+  if SOUND
 
-  % amp=1;
-  % duration= dt + 0.01; %(dt=0.2)
-  % fs=20500;  % sampling frequency
-  % values=0:1/fs:duration;
+    hi_f = 3456; % 8*432    %800 1200
+    lo_f = 432; %432 ipv 440
+    amp = 0.5;
+    duration = dt - 0.05; %(dt=0.2)
+    % duration = dt * 2; %(dt=0.2)
+    Fs = 8192;  % sampling frequency = 8192 2048
+      %must be higher than hi_f
+    values=0:1/Fs:duration;
+    len = length(values);
+    decreasing_amp = amp:-1*amp/len:0;
+    % a=amp*sin(2*pi * freq * values);
+    % sound(a);
 
-  % if strcmp(starting_dir,'1 in')
-  %   freq=1200 + cycle_time*10;
-  %   a=amp*sin(2*pi* freq*values);
-  %   sound(a);    
-  %   % global FREQ
-  %   % % FREQ=0;
-  %   % FREQ = 800 - cycle_time*10;
-  % elseif strcmp(starting_dir,'3 out')
-  %   freq=1200 + cycle_time*10;
-  %   sound(a);
-  %   % global FREQ
-  %   % % FREQ=0;
-  %   % FREQ = 12000 + cycle_time*10;
-  % end
+    % perfect fifth: 440*1.5= 660 Hz
+    % int = 1.5;
+    int = 5/4;
 
-
-
+    if strcmp(starting_dir,'1 in')
+      % f = 800 + (cycle_time*1).^2;
+      % f = lo_f * int^(cycle_time-1);
+      if f > Fs, f = Fs; end; % shannon..
+      a2 = decreasing_amp(1:len) .* sin(2*pi* f * values);
+      sound(a2,Fs);
+    elseif strcmp(starting_dir,'3 out')
+      % f = 1200 - (abs(cycle_time)*1).^2;
+      % a=amp*sin(2*pi* f * values);
+      % sound(a,Fs);
+      % f = 1200 - (abs(cycle_time)*1).^2;
+      f = hi_f * (1/int)^(abs(cycle_time)-1);
+      % a2 = sin(2*pi* f * values);
+      % a2 = a2 .* decreasing_amp(1:len);
+      if f < 500, f = 500; end; % prevent low bass notes
+      a2 = decreasing_amp(1:len) .* sin(2*pi* f * values);
+      sound(a2,Fs);
+    end
+  end
 
   result = {t+1, 'support', {starting_dir}};
 end
@@ -1024,6 +1032,21 @@ end
 
 %todo
 % gemiddelde waardes gebruiken
+%   zoek twee intervallen met een stabiele hr
+%   mean(hr) moeten nog steeds ver uit elkaar liggen
+%new
+% function result = bel_d_hr2( model, trace, parameters, t )
+%   % quantitative function, to use with the parameter adaption model
+%   prev_hr = l2.getall(trace, t, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+%   hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+%   result = {t+1, 'belief', predicate('d_hr', hr - prev_hr)};
+% end
+% geen lhr gebruiken, die is overbodig
+
+
+% andere optie:
+% alleen c aanpassen
+
 function result = adaptions_hr_bf( model, trace, parameters, t )
   assessment = trace(t+1).assessment.arg{1};
   skip  = model.parameters.default.pa_skip_n_time_steps;
@@ -1032,7 +1055,8 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
     lhr   = model.parameters.default.lhr;
     dt    = model.parameters.default.dt;
     time  = 1/dt * model.parameters.default.pa_time; % the review time
-    s     = model.parameters.default.pa_speed;
+    s_b     = model.parameters.default.pa_speed_b;
+    s_c     = model.parameters.default.pa_speed_c;
     a     = model.parameters.default.bf_a;
     b     = model.parameters.default.bf_b;
     c     = model.parameters.default.bf_c;
@@ -1056,25 +1080,18 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
       x2 = hrs(2);
       y1 = bfs(1);
       y2 = bfs(2);
+      %todo: hier een interval/average nemen
+
       if x1 > x2 + margin || x1 < x2 - margin
-        % a = 4.2857e-04 % when filled in in the 'advanced' formula
-        %b2 = (y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2)/(x1 - x2);
-        %c2 = y1 - a*(lhr - x1)^2 + ((lhr - x1)*(y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2))/(x1 - x2);
+        % a = 1.5505e-04 % when filled in in the 'advanced' formula
+        b2 = (- a*x1^2 + a*x2^2 + y1 - y2)/(x1 - x2)
+        c2 = (a*x1^2*x2 - a*x1*x2^2 + y2*x1 - y1*x2)/(x1 - x2)
 
-        %b2 = (y1 - y2)/(x1 - x2);
-        c2 = y1 + ((lhr - x1)*(y1 - y2))/(x1 - x2);
-
-
-        % b = b + s * (b2 - b);
-        c = c + s * (c2 - c);
-
-        % if b2 > 10 || c2 > 10 || b2 < -10
-        %   x1
-        %   x2
-        % end
+        b = b + s_b * (b2 - b);
+        c = c + s_c * (c2 - c);
 
         % model.parameters.default.bf_a = a;
-        % model.parameters.default.bf_b = b;
+        model.parameters.default.bf_b = b;
         model.parameters.default.bf_c = c;
 
         global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
@@ -1167,6 +1184,36 @@ function result = adaptions_chest_c_range( model, trace, parameters, t )
   result = {t+1, 'adaption_2', change};
 end
 
+function result = adaption_dt( model, trace, parameters, t )
+  % change dt when a timestap takes more time
+  dt = model.parameters.default.dt;
+  dt_plus = model.parameters.default.dt_plus;
+  measured_dt = toc;
+  tic;
+
+  global REAL_TIME_INPUT
+  if REAL_TIME_INPUT
+    if dt > measured_dt
+      model.parameters.default.dt = measured_dt + dt_plus;
+      disp('dt++')
+      measured_dt
+    else
+      % measured_dt <= dt
+      % disp(measured_dt - dt)
+      pause(dt - measured_dt);
+    end
+    if mod(t,100) == 0
+      disp('current dt:')
+      measured_dt
+    end
+  end
+  % voor discussie
+  % dt aanpassen leidt tot meetfouten bij o.a. frequenties
+  % dit kan opgelost worden door van dt een concpept te maken
+  % en oude waardes op te slaan in de trace
+  % het bepalen van gemiddelde frequenties kan dan gedaan worden i.c.m. dt
+  result = {t+1, 'adaption_3', false};
+end
 
 % if TRAINING
 %   dt = fixed

@@ -1,9 +1,9 @@
 %% deriving a formula from pairs of points
 clc, clear all
-syms a b c x1 x2 y1 y2 y3 lhr
+syms a b c x1 x2 y1 y2 y3
 % f(x)...   f: y = ...
-f1 = b*(x1-lhr) + c % = y1
-f2 = b*(x2-lhr) + c % = y2
+f1 = b*(x1) + c % = y1
+f2 = b*(x2) + c % = y2
 % a is fixed
 
 % Transcribe f1 and f2 to definitions of c (c1 and c2).
@@ -27,21 +27,28 @@ x1 =  90; y1 = 0.9;
 x2 = 110; y2 = 1;
 
 x1 =  67.2703; y1 = 0.5159;
+% x3 = 75.1351; y3 = 0.5224;
 x2 = 99.8270; y2 = 0.6238;
-%x3 = 75.1351; y3 = 0.5224;
 
-lhr = 40;
+
+
 %a = 4.2857e-04 % when filled in in the 'advanced' formula
 %b = (y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2)/(x1 - x2)
 %c = y1 - a*(lhr - x1)^2 + ((lhr - x1)*(y1 - y2 - a*(lhr - x1)^2 + a*(lhr - x2)^2))/(x1 - x2)
 b = (y1 - y2)/(x1 - x2)
-c = y1 + ((lhr - x1)*(y1 - y2))/(x1 - x2)
+c = (x1*y2 - x2*y1)/(x1 - x2)
 
 %b =    0.0033
 %c =    0.4255
 
+x =  67.2703; 
+y1 = b*x + c
+x = 99.8270; 
+y2 = b*x + c
+
+
 x = linspace(0,200);
-plot(x,b*(x-lhr) + c)
+plot(x,b*x + c)
 
 
 
