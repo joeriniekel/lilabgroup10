@@ -1,0 +1,54 @@
+function trace = l2add( model, trace, toAdd )
+%L2ADD Summary of this function goes here
+%   Detailed explanation goes here
+
+    if isempty(toAdd)
+        return
+    end
+    
+    % one single result to add
+    if ~iscell(toAdd{1})
+        try 
+            interval = toAdd{1};
+            if length(toAdd) == 2
+                if ispredicate(toAdd{2})
+                    pred = toAdd{2};
+                else
+                    pred = predicate(toAdd{2});
+                end
+            else
+                pred = predicate(toAdd{2}, toAdd{3});
+            end
+        catch err
+            throw(MException('L2:Add', 'Unable to interpret predicate to add.'));
+        end
+        
+        [validated, err] = model.validate(pred);
+        if ~validated
+            throw(err);
+        end
+        
+        try
+            for i=interval
+                if i > length(trace)
+                    trace(i).(pred.name) = [];
+                end
+                if ~l2.exists(trace, i, pred)
+                    trace(i).(pred.name) = [trace(i).(pred.name) pred];
+                end
+            end
+        catch err
+            throw(MException('L2:Add', 'Unable to cope with time point ''%i''.', i));
+        end
+        
+    % cell array with multiple results to add    
+    else
+        for i=1:length(toAdd)
+            try 
+                trace = l2add(model, trace, toAdd{i});
+            catch err
+                throwAsCaller(err)
+            end
+        end
+    end
+end

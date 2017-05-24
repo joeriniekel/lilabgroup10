@@ -650,7 +650,7 @@ function result = support( model, trace, parameters, t )
 
   global PLOT_COLOR PLOT_TXT
 
-  assessment = true;
+  % assessment = true;
 
   if assessment
     starting_dir = starting_dir;
@@ -887,8 +887,8 @@ function result = adaption_dt( model, trace, parameters, t )
       % measured_dt <= dt
       pause(dt - measured_dt);
 
-      dt
-      pauze = dt - measured_dt
+      % dt
+      % pauze = dt - measured_dt
 
 
       if (dt - measured_dt)/dt > 0.5
