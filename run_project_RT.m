@@ -1,15 +1,16 @@
 clear all; close all; clc
-global N REAL_TIME_INPUT TRAINING SOUND SAVE_DATA
+global N REAL_TIME_INPUT TRAINING SOUND SAVE_DATA LIMIT_DT
 
 % -------------------------
 % CONFIG
 % -------------------------
 
-N               = 30;     % number of timesteps to render
-SOUND           = false;    % use audio feedback for support
+N               = 150;     % number of timesteps to render
+SOUND           = true;    % use audio feedback for support
 REAL_TIME_INPUT = true;   % use realtime input data
 TRAINING        = false;   % use previously generated input from csv
 SAVE_DATA       = false;   % save bf and hr to csv files
+LIMIT_DT        = 0.6;
 
 % -------------------------
 % PLOTTING - realtime
@@ -34,10 +35,12 @@ PLOT_CHEST1 = stem(CHEST_Y1);linkdata on
 % subplot(1,2,1); RT_CHEST2 = plot(CHEST_Y2);linkdata on
 % refreshdata(RT_CHEST1);
 
-global PLOT_COLOR
+global PLOT_COLOR PLOT_TXT
 subplot(2,2,3); PLOT_COLOR = area([1 1]);
 PLOT_COLOR(1).FaceColor = [0 0 0];% red
 % PLOT_COLOR(1).FaceColor = [0 0 1];% blue
+subplot(2,2,4); PLOT_TXT = 'data/none.jpg'; imshow(PLOT_TXT); linkdata on
+% imshow('data/none.jpg')
 
 % -------------------------
 % CSV data

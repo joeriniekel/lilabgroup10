@@ -32,23 +32,14 @@
 default (
 
   dt;                 0.19
-  bhr;                90
   lhr;                40
-  max_chest_c;        80
-  min_chest_c;        60
-  max_chest_range;    20
-  high_bf;            4
-  disfac;             1
-  disfac_a_reg;       0.75
-  disfac_hr_var;      0.1
 
   %factors for the strength of relations between concepts
   anxiety_decay;      0.8
   anxiety_bf;         0.01
   anxiety_hr;         0.001
   anxiety_hr_var;     0.1
-  %hr_breathing;       0.08
-  %  %0.08
+
   anxiety_br_i;       0.005
 
   %default_a;          0
@@ -77,7 +68,9 @@ default (
   bf_b;               -0.0204
   bf_c;               1.1615
   n_breathing_cycles; 3
-  max_interval_t;     120
+  %max_interval_t;     60
+  lowest_bf;          0.01
+  max_bf;             5
   floor_bf;           0.1
   low_br_int;         0.4
 
@@ -85,8 +78,9 @@ default (
   n_hr_cycles; 3;
 
   % PARAMETER ADAPTION MODEL
-  pa_lim;                 0.01
-  pa_speed_b;             0.01
+  pa_lim;                 0
+  pa_speed_b;             0
+  %0.01
   pa_speed_c;             0.1
   pa_time;                10
     % 40

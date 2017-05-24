@@ -1108,6 +1108,14 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
         c = c * (1 + s_c * rel_d_c);
 
         % test the params (bf cannor be < 0)
+        % syms x y
+        % f = a*x^2 + b*x + c
+        % df = b + 2*a*x;
+        % index = solve(df == 0) % df == 0 at the top of the parabole
+        % % if a>0 this is the lowest value of the parabole
+        % if f(index) < 0
+
+          %old:
         % mini = 30;
         % maxi = 250;
         % x = 30:3:250; %linspace
