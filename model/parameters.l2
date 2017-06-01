@@ -45,8 +45,11 @@ default (
   %factors for the strength of relations between concepts
   anxiety_decay;      0.8
   anxiety_bf;         0.01
-  anxiety_hr;         0.001
-  anxiety_hr_var;     0.1
+
+  %gebrek aan literatuur
+  %anxiety_hr;         0.001
+  %anxiety_hr_var;     0.1
+
   %hr_breathing;       0.08
   %  %0.08
   anxiety_br_i;       0.005

@@ -53,12 +53,13 @@ end
 
 function result = hr_var( model, trace, parameters, t )
   % hr_var = the amount of bpm that will be 'added' or 'subtracted'
-  anxiety  = trace(t+1).anxiety.arg{1};
   d        = model.parameters.default.disfac_hr_var;
-  a        = model.parameters.default.anxiety_hr_var;
-  % influence from ps..... = 0
+  % anxiety  = trace(t+1).anxiety.arg{1};
+  % a        = model.parameters.default.anxiety_hr_var;
+  % hr_var = d * rand + a * anxiety * rand;
 
-  hr_var = d * rand + a * anxiety * rand;
+  hr_var = d * rand;
+
   result = {t+1, 'hr_var', hr_var};
 end
 
@@ -66,13 +67,14 @@ function result = hr( model, trace, parameters, t )
   % in bpm, between 0 and 250
   % output = hr * dt
   ps      = trace(t).ps.arg{1}; % t+1 doesn't work with this syntax + scenario values
-  var     = trace(t+1).hr_var.arg{1};
-  anxiety = trace(t+1).anxiety.arg{1};
-  a       = model.parameters.default.anxiety_hr;
+  hr_var     = trace(t+1).hr_var.arg{1};
+  % anxiety = trace(t+1).anxiety.arg{1};
+  % a       = model.parameters.default.anxiety_hr;
   bhr     = model.parameters.default.bhr;
   lhr     = model.parameters.default.lhr;
 
-  hr = (bhr + ps) + (a * anxiety) + var;
+  % hr = (bhr + ps) + (a * anxiety) + var;
+  hr = (bhr + ps) + hr_var;
   if hr < lhr, hr = lhr; disp('lhr reached!'); end;
 
   global TRAINING;
@@ -783,7 +785,7 @@ function result = bel_ps( model, trace, parameters, t )
   hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   a       = model.parameters.default.anxiety_hr;
   bhr     = model.parameters.default.bhr;
-  
+
   % omschrijven: voor in appendix
   % hr = (bhr * ps) + (a * anxiety);
   % hr = (bhr * ps) + (a * anxiety)
