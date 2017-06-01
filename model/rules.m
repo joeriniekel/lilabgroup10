@@ -783,6 +783,7 @@ function result = bel_ps( model, trace, parameters, t )
   hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   a       = model.parameters.default.anxiety_hr;
   bhr     = model.parameters.default.bhr;
+  
   % omschrijven: voor in appendix
   % hr = (bhr * ps) + (a * anxiety);
   % hr = (bhr * ps) + (a * anxiety)
