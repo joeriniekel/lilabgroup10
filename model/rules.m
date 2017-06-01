@@ -54,6 +54,8 @@ end
 function result = hr_var( model, trace, parameters, t )
   % hr_var = the amount of bpm that will be 'added' or 'subtracted'
   anxiety  = trace(t+1).anxiety.arg{1};
+    %weghalen todo new3
+
   d        = model.parameters.default.disfac_hr_var;
   a        = model.parameters.default.anxiety_hr_var;
   % influence from ps..... = 0
@@ -68,6 +70,7 @@ function result = hr( model, trace, parameters, t )
   ps      = trace(t).ps.arg{1}; % t+1 doesn't work with this syntax + scenario values
   var     = trace(t+1).hr_var.arg{1};
   anxiety = trace(t+1).anxiety.arg{1};
+    %weghalen todo new3
   a       = model.parameters.default.anxiety_hr;
   bhr     = model.parameters.default.bhr;
   lhr     = model.parameters.default.lhr;
@@ -111,7 +114,6 @@ function result = breathing_f( model, trace, parameters, t )
   b       = model.parameters.default.default_b;
   c       = model.parameters.default.default_c;
   % hr = hr_bpm / 60; % in s-1
-  % breathing_f = a*hr.^2 + b*hr + c + (a2 * anxiety);
   breathing_f = a*(hr)^2 + b*(hr) + c + (a2 * anxiety);
 
   global TRAINING;
@@ -709,6 +711,8 @@ end
 
 % new
 function result = bel_anxiety( model, trace, parameters, t )
+  % anxiety in range [0,100]
+  % 0 = almost no anxiety
   prev_anxiety  = l2.getall(trace, t, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
   bf            = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   hr            = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
@@ -762,7 +766,7 @@ function result = bel_anxiety( model, trace, parameters, t )
   elseif stable_hr && ~stable_bf
     % stable hr and unstable bf
     disp('stable_hr, unstable bf')
-    anxiety = 90;
+    anxiety = 100;
   elseif stable_hr && bf > expected_bf + floor_bf
     % stable hr and higher bf than expected_bf
     disp('stable_hr, bf > expected_bf')
@@ -792,6 +796,7 @@ function result = bel_ps( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('ps', ps)};
 end
 
+% todo weg new3
 function result = bel_original_hr( model, trace, parameters, t )
   %the value of the heart rate without the influence from anxiety
   ps  = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
