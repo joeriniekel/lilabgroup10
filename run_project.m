@@ -34,10 +34,13 @@ PLOT_CHEST1 = stem(CHEST_Y1);linkdata on
 % subplot(1,2,1); RT_CHEST2 = plot(CHEST_Y2);linkdata on
 % refreshdata(RT_CHEST1);
 
-global PLOT_COLOR
+global PLOT_COLOR PLOT_TXT
 subplot(2,2,3); PLOT_COLOR = area([1 1]);
 PLOT_COLOR(1).FaceColor = [0 0 0];% red
 % PLOT_COLOR(1).FaceColor = [0 0 1];% blue
+subplot(2,2,4); PLOT_TXT = 'data/none.jpg'; imshow(PLOT_TXT); linkdata on
+
+
 
 % -------------------------
 % CSV data

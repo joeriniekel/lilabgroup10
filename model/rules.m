@@ -7,7 +7,6 @@ end
 
 
 % chest_c in cm = voltage * 10 + 50?
-% of logaritmisch?
 
 % ---------------------------------------------------------------
 %
@@ -941,27 +940,30 @@ function result = support( model, trace, parameters, t )
   assessment = trace(t+1).assessment.arg{1};
   cycle_time = trace(t+1).cycle_time.arg{1};
 
-  global PLOT_COLOR
-
-  % assessment = true; %testing
+  global PLOT_COLOR PLOT_TXT
 
   if assessment
     starting_dir = starting_dir;
 
     if strcmp(starting_dir, '1 in')
       PLOT_COLOR(1).FaceColor = [1 0 0];% red
+      PLOT_TXT = 'data/in.jpg';
     elseif strcmp(starting_dir,'3 out')
       PLOT_COLOR(1).FaceColor = [0 0 1];% blue
+      PLOT_TXT = 'data/uit.jpg';
     else
       PLOT_COLOR(1).FaceColor = [1 1 0];% yellow
+      PLOT_TXT = 'data/rust.jpg';
       % h(1).FaceColor = [0 0.5 0];% green
     end
   else
     starting_dir = '4 none';
     PLOT_COLOR(1).FaceColor = [0 0 0];% yellow
+    PLOT_TXT = 'data/none.jpg';
   end
 
   refreshdata(PLOT_COLOR)
+  imshow(PLOT_TXT);
 
   %------------------------------------------------------------------
   %-------- Real time synthesis - can be igored in the rules --------
