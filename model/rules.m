@@ -102,12 +102,10 @@ end
 %new
 function result = breathing_f( model, trace, parameters, t )
   % between 0 and 4 (params.high_bf)
-  % hr does not have to be translated to bpm
+  % hr does not have to be translated to bpm because the formula with ax bx c is used
   hr      = trace(t+1).hr.arg{1};
   anxiety = trace(t+1).anxiety.arg{1};
   a2      = model.parameters.default.anxiety_bf;
-  %h       = model.parameters.default.hr_breathing;
-  % h2      = model.parameters.default.hr_breathing_exp;
   lhr     = model.parameters.default.lhr;
   a       = model.parameters.default.default_a;
   b       = model.parameters.default.default_b;
@@ -184,8 +182,6 @@ function result = chest_c( model, trace, parameters, t )
   global TRAINING;
   global TRAINING_BF;
   if TRAINING,    curr_chest_c = TRAINING_BF(t)^2 * 10 + 50;  end;
-    %todo deze formula uitleggen of uitwerken
-
 
   % real time graphs
   global CHEST_Y1 PLOT_CHEST1  %CHEST_Y2  RT_CHEST2
@@ -301,6 +297,10 @@ function result = phase_shift( model, trace, parameters, t )
   result = {t+1, 'phase_shift', phi}; % + 0.25*pi
 end
 %new
+
+
+
+
 %
 %
 %
@@ -726,7 +726,7 @@ function result = bel_anxiety( model, trace, parameters, t )
   c         = model.parameters.default.bf_c;
   pa_time   = 1/dt * model.parameters.default.pa_time;
 
-  % script om data op te slaan ---------------------------------------------
+  % script to save data as .csv file ---------------------------------------------
   % global N TRAINING
   % if t == N - 1 && TRAINING
   %   bb = [];
@@ -752,7 +752,7 @@ function result = bel_anxiety( model, trace, parameters, t )
     % the adaption model needs a few timesteps to calculate the parameters for the
     expected_bf = Inf;
   else
-    expected_bf = a*hr.^2 + b*hr + c; % f(x) = ax^2 +bx + c; x = x-lhr
+    expected_bf = a*hr.^2 + b*hr + c; % f(x) = ax^2 +bx + c
   end
 
   if br_intensity < low_int
@@ -938,7 +938,7 @@ function result = support( model, trace, parameters, t )
 
   global PLOT_COLOR
 
-  % assessment = true;
+  % assessment = true; %testing
 
   if assessment
     starting_dir = starting_dir;
@@ -958,6 +958,9 @@ function result = support( model, trace, parameters, t )
 
   refreshdata(PLOT_COLOR)
 
+  %------------------------------------------------------------------
+  %-------- Real time synthesis - can be igored in the rules --------
+  %------------------------------------------------------------------
   global SOUND
   if SOUND
     dt = model.parameters.default.dt;
@@ -965,38 +968,38 @@ function result = support( model, trace, parameters, t )
     lo_f = 432; %432 ipv 440
     amp = 0.5;
     duration = dt - 0.05; %(dt=0.2)
-    % duration = dt * 2; %(dt=0.2)
     Fs = 8192;  % sampling frequency = 8192 2048
       %must be higher than hi_f
-    values=0:1/Fs:duration;
+    values = 0:1/Fs:duration;
     len = length(values);
     decreasing_amp = amp:-1*amp/len:0;
-    % a=amp*sin(2*pi * freq * values);
-    % sound(a);
-
     % perfect fifth: 440*1.5= 660 Hz
     % int = 1.5;
     int = 5/4;
 
     if strcmp(starting_dir,'1 in')
+      % play notes with an increasing pitch
+
       % f = 800 + (cycle_time*1).^2;
       f = lo_f * int^(cycle_time-1);
       if f > Fs, f = Fs; end; % shannon..
       a2 = decreasing_amp(1:len) .* sin(2*pi* f * values);
       sound(a2,Fs);
+
     elseif strcmp(starting_dir,'3 out')
-      % f = 1200 - (abs(cycle_time)*1).^2;
+      % play notes with a decreasing pitch
+
       % a=amp*sin(2*pi* f * values);
-      % sound(a,Fs);
-      % f = 1200 - (abs(cycle_time)*1).^2;
       f = hi_f * (1/int)^(abs(cycle_time)-1);
-      % a2 = sin(2*pi* f * values);
-      % a2 = a2 .* decreasing_amp(1:len);
       if f < 500, f = 500; end; % prevent low bass notes
       a2 = decreasing_amp(1:len) .* sin(2*pi* f * values);
       sound(a2,Fs);
+
     end
   end
+  %------------------------------------------------------------------
+  %------------------------------------------------------------------
+  %------------------------------------------------------------------
 
   result = {t+1, 'support', {starting_dir}};
 end
@@ -1031,23 +1034,11 @@ end
 % gemiddelde waardes gebruiken
 %   zoek twee intervallen met een stabiele hr
 %   mean(hr) moeten nog steeds ver uit elkaar liggen
-%new
-% function result = bel_d_hr2( model, trace, parameters, t )
-%   % quantitative function, to use with the parameter adaption model
-%   prev_hr = l2.getall(trace, t, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-%   hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-%   result = {t+1, 'belief', predicate('d_hr', hr - prev_hr)};
-% end
-% geen lhr gebruiken, die is overbodig
-
-
-% andere optie:
-% alleen c aanpassen
 
 function result = adaptions_hr_bf( model, trace, parameters, t )
   assessment = trace(t+1).assessment.arg{1};
   skip  = model.parameters.default.pa_skip_n_time_steps;
-  %skip the first 10 timesteps
+  %skip the first 10 timesteps and skip a minimum of 3 timesteps
   if ~assessment && t>3+skip
     lhr    = model.parameters.default.lhr;
     dt     = model.parameters.default.dt;
@@ -1066,13 +1057,11 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
       bfs(i) = bf;
     end
     if sum(hrs)>lhr*3 && sum(bfs) > 0 && t > 30
-      % hrs
-      % bfs
-      x1 = hrs(1);
-      x2 = hrs(2);
-      y1 = bfs(1);
-      y2 = bfs(2);
-      %todo: hier een interval/average nemen
+
+      % disp(length(hrs))
+      x1 = hrs(1);    y1 = bfs(1);
+      x2 = hrs(2);    y2 = bfs(2);
+      %x3 and %y3 are unused
 
       if x1 > x2 + margin || x1 < x2 - margin
         % update the necessary params
@@ -1103,39 +1092,20 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
           rel_d_c = -1*pa_lim;
         end
 
-        % apply differences:  p = old p * 1 + (factor * relativ change)
+        % apply differences:  p = old p * 1 + (factor * relative change)
         b = b * (1 + s_b * rel_d_b);
         c = c * (1 + s_c * rel_d_c);
 
-        % test the params (bf cannor be < 0)
-        % syms x y
-        % f = a*x^2 + b*x + c
-        % df = b + 2*a*x;
-        % index = solve(df == 0) % df == 0 at the top of the parabole
-        % % if a>0 this is the lowest value of the parabole
-        % if f(index) < 0
+        %change params
+        model.parameters.default.bf_b = b;
+        model.parameters.default.bf_c = c;
 
-          %old:
-        % mini = 30;
-        % maxi = 250;
-        % x = 30:3:250; %linspace
-        % f1 = a*x.^2 + b*x + c;
-        % % f3 = b + 2*a*x;
-        % % index = find(min(f3) == f3)
-        % % lowest = f1(index) % when a>0
-        % if min(f1) > 0
-          %change params
-          model.parameters.default.bf_b = b;
-          model.parameters.default.bf_c = c;
-          % plot/update graph
-          global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
-          BF_AXIS = a*HR_AXIS.^2+b*HR_AXIS+c;
-          % BF_A = BF_A+0.1;
-          % BF_AXIS = BF_A*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
-          refreshdata(PLOT_BF)
-        % else
-        %   disp('PA: f1 < 0')
-        % end
+        % plot/update graph
+        global PLOT_BF HR_AXIS BF_AXIS %BF_A BF_B BF_C
+        BF_AXIS = a*HR_AXIS.^2+b*HR_AXIS+c;
+        % BF_A = BF_A+0.1;
+        % BF_AXIS = BF_A*HR_AXIS;% bf_plot = a*hr_plot.^2+b*hr_plot+c;
+        refreshdata(PLOT_BF)
       end
     end
   end
