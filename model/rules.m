@@ -17,8 +17,6 @@ end
 
 % ! bij waardes uit scenario altijd (t) gebruiken ipv (t+1)
 
-%todo: geen prev_... concepten gebruiken
-
 function result = mind( model, trace, parameters, t )
   % dir = trace(t).support.arg{1};
   dir = '4 none';
@@ -67,7 +65,7 @@ function result = hr( model, trace, parameters, t )
   % in bpm, between 0 and 250
   % output = hr * dt
   ps      = trace(t).ps.arg{1}; % t+1 doesn't work with this syntax + scenario values
-  hr_var     = trace(t+1).hr_var.arg{1};
+  hr_var  = trace(t+1).hr_var.arg{1};
   % anxiety = trace(t+1).anxiety.arg{1};
   % a       = model.parameters.default.anxiety_hr;
   bhr     = model.parameters.default.bhr;
@@ -565,8 +563,7 @@ function result = bel_hr( model, trace, parameters, t )
 end
 
 function result = bel_used_chest_range( model, trace, parameters, t )
-  %todo: timesteps (review) afhankelijk maken van bf
-  %       zodat er naar de laatste 3 breathing cycles gekeken wordt
+  % chest_range_time = number of breathing cycles
   min       = model.parameters.default.bel_min_chest_c; % believed min
   max       = model.parameters.default.bel_max_chest_c; % believed max
   dt        = model.parameters.default.dt;
@@ -654,15 +651,18 @@ function result = bel_d_hr( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('d_hr', d)};
 end
 
-%new
-%todo: deze zijn nog altijd 0
+% n_cycles = 5 todo
+
 function result = bel_stable_bf( model, trace, parameters, t )
   % check if bf has both increased and decreased in a certain interval
+  %  time = n_cycles * 1/bf * 1/dt
   bf        = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
   dt        = model.parameters.default.dt;
-  n_cycles  = 0.2; % number of cycles to search
-  time_per_cycle = bf / dt;
-  time = n_cycles * time_per_cycle;
+  n_cycles  = 5; % parameter: number of cycles to search
+  % time_per_cycle = bf / dt;
+  % time_per_cycle = 1/bf * 1/dt;
+  % time = n_cycles * time_per_cycle = n / (bf * dt)
+  time = n_cycles / bf / dt;
   if time>t, time=t; end;
   positives = [0];
   negatives = [0];
@@ -685,9 +685,11 @@ end
 %new
 function result = bel_stable_hr( model, trace, parameters, t )
   % check if hr has both increased and decreased in a certain interval
-  % hr        = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+  hr   = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   dt   = model.parameters.default.dt;
-  time = 1/dt * model.parameters.default.dt; % number of cycles to search
+  n_cycles  = 5; % parameter: number of cycles to search
+  time = n_cycles / hr / dt;
+
   if time>t, time=t; end;
   positives = [0];
   negatives = [0];
@@ -780,29 +782,29 @@ function result = bel_anxiety( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('anxiety', anxiety)};
 end
 
-function result = bel_ps( model, trace, parameters, t )
-  anxiety = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
-  hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-  a       = model.parameters.default.anxiety_hr;
-  bhr     = model.parameters.default.bhr;
+% function result = bel_ps( model, trace, parameters, t )
+%   anxiety = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
+%   hr      = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
+%   a       = model.parameters.default.anxiety_hr;
+%   bhr     = model.parameters.default.bhr;
+%
+%   % omschrijven: voor in appendix
+%   % hr = (bhr * ps) + (a * anxiety);
+%   % hr = (bhr * ps) + (a * anxiety)
+%   % hr - a * anxiety = bhr * ps
+%   % ps = (hr - a * anxiety) / bhr
+%   ps = (hr - a * anxiety) / bhr;  % optional: + param: deviation of ps?
+%   result = {t+1, 'belief', predicate('ps', ps)};
+% end
 
-  % omschrijven: voor in appendix
-  % hr = (bhr * ps) + (a * anxiety);
-  % hr = (bhr * ps) + (a * anxiety)
-  % hr - a * anxiety = bhr * ps
-  % ps = (hr - a * anxiety) / bhr
-  ps = (hr - a * anxiety) / bhr;  % optional: + param: deviation of ps?
-  result = {t+1, 'belief', predicate('ps', ps)};
-end
-
-function result = bel_original_hr( model, trace, parameters, t )
-  %the value of the heart rate without the influence from anxiety
-  ps  = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
-  bhr = model.parameters.default.bhr; %todo kan dit(2)?
-  % hr = (bhr * ps) + (a * anxiety)
-  hr = bhr * ps;
-  result = {t+1, 'belief', predicate('original_hr', hr)};
-end
+% function result = bel_original_hr( model, trace, parameters, t )
+%   %the value of the heart rate without the influence from anxiety
+%   ps  = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
+%   bhr = model.parameters.default.bhr; %todo kan dit(2)?
+%   % hr = (bhr * ps) + (a * anxiety)
+%   hr = bhr * ps;
+%   result = {t+1, 'belief', predicate('original_hr', hr)};
+% end
 
 function result = assessment( model, trace, parameters, t )
   anxiety = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
@@ -849,7 +851,8 @@ end
 function result = des_bf( model, trace, parameters, t )
   % desired breathing_f without influence from anxiety.
   % hr ipv original hr
-  hr = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
+  % hr = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
+  hr = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   % h       = model.parameters.default.hr_breathing;
   lhr = model.parameters.default.lhr;
   a   = model.parameters.default.bf_a;
@@ -916,7 +919,6 @@ function result = des_starting_dir( model, trace, parameters, t )
   chest_c = l2.getall(trace, t+1, 'belief', predicate('chest_c', NaN)).arg{1}.arg{1};
   min       = model.parameters.default.bel_min_chest_c; % believed min
   max       = model.parameters.default.bel_max_chest_c; % believed max
-  %todo param adaption gebruiken voor min en max?
 
   if cycle_time > 0
     if chest_c < max
@@ -1231,14 +1233,14 @@ function result = graph_bel_anxiety( model, trace, parameters, t )
   h = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_bel_anxiety', h};
 end
-function result = graph_bel_prev_ps( model, trace, parameters, t )
-  ps = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
-  result = {t+1, 'graph_bel_prev_ps', ps};
-end
-function result = graph_original_hr( model, trace, parameters, t )
-  h = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
-  result = {t+1, 'graph_original_hr', h};
-end
+% function result = graph_bel_prev_ps( model, trace, parameters, t )
+%   ps = l2.getall(trace, t+1, 'belief', predicate('ps', NaN)).arg{1}.arg{1};
+%   result = {t+1, 'graph_bel_prev_ps', ps};
+% end
+% function result = graph_original_hr( model, trace, parameters, t )
+%   h = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
+%   result = {t+1, 'graph_original_hr', h};
+% end
 function result = graph_bel_used_chest_range( model, trace, parameters, t )
   x = l2.getall(trace, t+1, 'belief', predicate('used_chest_range', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_bel_used_chest_range', x};
