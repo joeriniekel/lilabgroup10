@@ -23,15 +23,11 @@
 % breathing frequency
 %  n_breathing_cycles  = number of complete breathing cycles
 %  max_interval_t      = in s, dependent of dt
-% breathing f acceleration
-%  acc_interval        = number of timeframes used to search for accelerations
-%  acc_margin          = sensitivity of search
-% breathing f pattern
-%  pattern_interval    = number of timeframes used to search for accelerations
+
 
 default (
 
-  dt;                 0.18
+  dt;                 0.2
   bhr;                90
   lhr;                40
   max_chest_c;        80
@@ -46,12 +42,6 @@ default (
   anxiety_decay;      0.8
   anxiety_bf;         0.01
 
-  %gebrek aan literatuur
-  %anxiety_hr;         0.001
-  %anxiety_hr_var;     0.1
-
-  %hr_breathing;       0.08
-  %  %0.08
   anxiety_br_i;       0.005
 
   %default_a;          0
@@ -72,7 +62,6 @@ default (
   bel_min_chest_c;    Inf
 
   % breathing f
-  % a = 4.2857e-04 % experiment doen...
   %bf_a;               0
   %bf_b;               0.0033
   %bf_c;               0.4255
@@ -85,12 +74,12 @@ default (
   low_br_int;         0.4
 
   % hr
-  n_hr_cycles; 3;
+  n_hr_cycles;        3
 
   % PARAMETER ADAPTION MODEL
   pa_lim;                 0.01
   pa_speed_b;             0.01
-  pa_speed_c;             0.1
+  pa_speed_c;             0.01
   pa_time;                10
     % 40
   pa_skip_n_time_steps;   20

@@ -17,8 +17,8 @@ end
 % ! bij waardes uit scenario altijd (t) gebruiken ipv (t+1)
 
 function result = mind( model, trace, parameters, t )
-  % dir = trace(t).support.arg{1};
-  dir = '4 none';
+  dir = trace(t).support.arg{1};
+  % dir = '4 none';
   result = {t+1, 'mind', {dir}};
 end
 
@@ -50,7 +50,7 @@ end
 
 function result = hr_var( model, trace, parameters, t )
   % hr_var = the amount of bpm that will be 'added' or 'subtracted'
-  d        = model.parameters.default.disfac_hr_var;
+  d = model.parameters.default.disfac_hr_var;
   % anxiety  = trace(t+1).anxiety.arg{1};
   % a        = model.parameters.default.anxiety_hr_var;
   % hr_var = d * rand + a * anxiety * rand;
@@ -62,7 +62,6 @@ end
 
 function result = hr( model, trace, parameters, t )
   % in bpm, between 0 and 250
-  % output = hr * dt
   ps      = trace(t).ps.arg{1}; % t+1 doesn't work with this syntax + scenario values
   hr_var  = trace(t+1).hr_var.arg{1};
   % anxiety = trace(t+1).anxiety.arg{1};
@@ -180,15 +179,23 @@ function result = chest_c( model, trace, parameters, t )
   % new
   global TRAINING;
   global TRAINING_BF;
-  if TRAINING,    curr_chest_c = TRAINING_BF(t)^2 * 10 + 50;  end;
+  if TRAINING,    curr_chest_c = TRAINING_BF(t) * 10 + 50;  end;
 
   % real time graphs
   global CHEST_Y1 PLOT_CHEST1  %CHEST_Y2  RT_CHEST2
   CHEST_Y1(1) = [];
-  CHEST_Y1(end+1) = curr_chest_c - 50;
+  CHEST_Y1(end+1) = curr_chest_c; %  curr_chest_c - 50
   % CHEST_Y2(end+1) = curr_chest_c;
   refreshdata(PLOT_CHEST1 ); %RT_CHEST1
   % refreshdata(RT_CHEST2);
+
+  % % 'training' icm support always on
+  % % breathe in and out to setup the pa model
+  % if t == 1
+  %   curr_chest_c = min;
+  % elseif t == 2
+  %   curr_chest_c = max;
+  % end
 
   result = {t+1, 'chest_c', curr_chest_c};
 end
@@ -752,7 +759,7 @@ function result = bel_anxiety( model, trace, parameters, t )
 
 
   if t < pa_time
-    % the adaption model needs a few timesteps to calculate the parameters for the
+    % the adaption model needs a few timesteps to calculate certain parameters
     expected_bf = Inf;
   else
     expected_bf = a*hr.^2 + b*hr + c; % f(x) = ax^2 +bx + c
@@ -807,11 +814,7 @@ end
 
 function result = assessment( model, trace, parameters, t )
   anxiety = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
-  floor_a = 0.0001;
-
-  %demo
-  % if t < 100
-  % assessment = true
+  floor_a = 0.5;
 
   if anxiety > floor_a
     assessment = true;
@@ -848,21 +851,14 @@ end
 %
 
 function result = des_bf( model, trace, parameters, t )
-  % desired breathing_f without influence from anxiety.
-  % hr ipv original hr
-  % hr = l2.getall(trace, t+1, 'belief', predicate('original_hr', NaN)).arg{1}.arg{1};
-  hr = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
-  % h       = model.parameters.default.hr_breathing;
-  lhr = model.parameters.default.lhr;
+  % desired breathing_f
+  hr  = l2.getall(trace, t+1, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
   a   = model.parameters.default.bf_a;
   b   = model.parameters.default.bf_b;
   c   = model.parameters.default.bf_c;
 
-  % hr = hr_bpm / 60; % in s-1
   breathing_f = a*hr.^2 + b*hr + c;
 
-  %testing:   this should determine the final bf of the user
-  % breathing_f = 0.4;
   result = {t+1, 'desire', predicate('breathing_f', breathing_f)};
 end
 

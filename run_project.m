@@ -5,8 +5,8 @@ global N REAL_TIME_INPUT TRAINING SOUND
 % CONFIG
 % -------------------------
 
-N               = 80;     % number of timesteps to render
-SOUND           = true;    % use audio feedback for support
+N               = 100;     % number of timesteps to render
+SOUND           = false;    % use audio feedback for support
 REAL_TIME_INPUT = false;   % use realtime input data
 TRAINING        = false;   % use previously generated input from csv
 

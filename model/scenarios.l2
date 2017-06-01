@@ -1,29 +1,34 @@
 % Note that scenarios are independent from 'real' simulated time (dt)
 
 % hr              hr  in bpm
-% breathing f     f   in Hz (sˆ-1)
+% breathing f     f   in Hz (s^-1)
 % physical_state  ps  factor for increase in hr
-
-%sitfac{10};             [10:100]
-  %bij [5:Inf] geeft hij alsnog een dubbele lijn
-
-% breathing_intensity   higher intensity means that subject is breathing deeper
-
+% sitfac              simulate an anxiety provoking environment
 
 
 default (
   % start with increase in ps
   % later, increase the situational factors
-  %   in peaks to simulate fear/stress instead of anxiet
+  %   in peaks to simulate fear/stress instead of anxiety
   sitfac{0};              [1:Inf]
-  %sitfac{90};            [31:40]
-  %sitfac{90};            [41:90]
-  %sitfac{90};            [91:150]
-  %sitfac{50};            [151:500]
+  %sitfac{0};              [1:15]
+  %sitfac{30};             [16:20]
+  %sitfac{10};             [21:35]
+  %sitfac{80};             [36:40]
+  %sitfac{50};             [41:45]
+  %sitfac{80};             [46:50]
+  %sitfac{50};             [51:56]
+  %sitfac{80};             [57:61]
+  %sitfac{50};             [62:80]
+  %sitfac{60};             [81:300]
 
-  ps{01};   	            [1:Inf]
-  %ps{01};   	            [11:30]
-  %ps{01};   	            [31:500]
+  %ps{01};   	            [1:Inf]
+  ps{01};   	            [1:15]
+  ps{20};   	            [16:30]
+  ps{40};  	              [31:40]
+  ps{60};   	            [41:60]
+  ps{50};   	            [61:70]
+  ps{40};   	            [71:300]
 
   anxiety{0};             [1]
   hr{90};                 [1]
@@ -32,15 +37,15 @@ default (
   chest_c{65};            [1]
 
   dispos_br_i{0.99};      [1:Inf]
-  %breathing_intensity{0.99};  [1:Inf]
-  starting_dir{1 in};         [1]
-  phase_shift{0};             [1]
-  cycle_time{1};              [1]
-  support{4 none};            [1:2]
-  hr_pos{false};                  [1]
+  starting_dir{1 in};     [1]
+  phase_shift{0};         [1]
+  cycle_time{1};          [1]
+  %support{4 none};        [1:2]
+  support{4 none};        [1]
+  hr_pos{false};          [1]
 
-  assessment{false};          [1]
-  %mind{4 none};               [1]
+  assessment{false};      [1]
+  %mind{4 none};          [1]
 
 
   % beliefs
