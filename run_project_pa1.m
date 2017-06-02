@@ -5,7 +5,7 @@ global N REAL_TIME_INPUT TRAINING SOUND
 % CONFIG
 % -------------------------
 
-N               = 100;     % number of timesteps to render
+N               = 55;     % number of timesteps to render
 SOUND           = false;    % use audio feedback for support
 REAL_TIME_INPUT = false;   % use realtime input data
 TRAINING        = false;   % use previously generated input from csv
@@ -68,7 +68,7 @@ TRAINING_BF = c3_bf;    TRAINING_HR = c3_hr;
 disp('Running model...'); 
 if REAL_TIME_INPUT && TRAINING, TRAINING = false; disp('-- WARNING not TRAINING --'); end;
 if TRAINING, disp('using .cvs data'); end;
-model = l2('model');
+model = l2('model_pa1');
 tic;
 
 % model.simulate(N, 'COM5');

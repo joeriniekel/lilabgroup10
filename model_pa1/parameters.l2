@@ -66,8 +66,8 @@ default (
   %bf_b;               0.0033
   %bf_c;               0.4255
   bf_a;               1.5505e-04
-  bf_b;               -0.0204
-  bf_c;               1.1615
+  bf_b;               0.0001
+  bf_c;               0.0001
   n_breathing_cycles; 3
   max_interval_t;     120
   floor_bf;           0.1
@@ -77,11 +77,10 @@ default (
   n_hr_cycles;        3
 
   % PARAMETER ADAPTION MODEL
-  pa_lim;                 0.01
-  pa_speed_b;             0.01
-  pa_speed_c;             0.01
+  pa_lim;                 100
+  pa_speed_b;             1
+  pa_speed_c;             1
   pa_time;                10
-    % 40
   pa_skip_n_time_steps;   20
   dt_plus;                0.01
 
