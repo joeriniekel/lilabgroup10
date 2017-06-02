@@ -17,8 +17,8 @@ end
 % ! bij waardes uit scenario altijd (t) gebruiken ipv (t+1)
 
 function result = mind( model, trace, parameters, t )
-  dir = trace(t).support.arg{1};
-  % dir = '4 none';
+  % dir = trace(t).support.arg{1};
+  dir = '4 none';
   result = {t+1, 'mind', {dir}};
 end
 
@@ -821,6 +821,7 @@ function result = assessment( model, trace, parameters, t )
   else
     assessment = false;
   end
+  assessment = false;
   result = {t+1, 'assessment', assessment};
 end
 
@@ -939,6 +940,7 @@ function result = support( model, trace, parameters, t )
   global PLOT_COLOR PLOT_TXT
 
   if assessment
+    disp('assess')
     starting_dir = starting_dir;
 
     if strcmp(starting_dir, '1 in')
@@ -1051,7 +1053,7 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
     if time>t,time=t;end;
     hrs = [];
     bfs = [];
-    for i=1:3
+    for i=1:2
       % pick a random sample in the last x timesteps
       sample = t+1 - round(time * rand);
       hr = l2.getall(trace, sample, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
@@ -1086,14 +1088,21 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
         % keep diffs in range [-pa_lim,pa_lim]
         if rel_d_b > pa_lim
           rel_d_b = pa_lim;
-        elseif rel_d_b < -1*pa_lim
-          rel_d_b = -1*pa_lim;
+        elseif rel_d_b < -pa_lim
+          rel_d_b = -pa_lim;
         end
         if rel_d_c > pa_lim
           rel_d_c = pa_lim;
-        elseif rel_d_c < -1*pa_lim
-          rel_d_c = -1*pa_lim;
+        elseif rel_d_c < -pa_lim
+          rel_d_c = -pa_lim;
         end
+
+        b
+        c
+        b2
+        c2
+        rel_d_b
+        rel_d_c
 
         % apply differences:  p = old p * 1 + (factor * relative change)
         % if s_b = 0,1 and rel_d_b = -10; 1 + s_b * rel_d_b = 1 + -1 = 0
@@ -1102,6 +1111,9 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
         elseif 1 + s_c * rel_d_c ~= 0
           c = c * (1 + s_c * rel_d_c);
         end
+        b
+        c
+
 
         %change params
         model.parameters.default.bf_b = b;

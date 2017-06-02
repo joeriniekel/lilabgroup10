@@ -1,0 +1,73 @@
+observe;            {OBSERVE}
+belief;             {BELIEF}
+desire;             {DESIRE}
+
+% -------------------------
+% DOMAIN MODEL
+% -------------------------
+anxiety;            REAL
+anxiety_regulation; REAL
+sitfac;             REAL
+hr;                 REAL
+hr_var;							REAL
+breathing_f;        REAL
+ps;       					REAL
+performance;        REAL
+br_intensity;  			REAL
+dispos_br_i;				REAL
+used_chest_range;   REAL
+chest_c;            REAL
+mind;								{POS}
+relative_c;					REAL
+phase_shift;				REAL
+starting_dir;       {POS}
+
+% -------------------------
+% ANALYSIS MODEL
+% -------------------------
+hr_pos;             BOOLEAN
+original_hr;				REAL
+
+d_hr;								REAL
+d_bf;								REAL
+stable_bf;          BOOLEAN
+stable_hr;          BOOLEAN
+assessment;					BOOLEAN
+
+% -------------------------
+% SUPPORT MODEL
+% -------------------------
+cycle_time;						REAL
+support;							{POS}
+
+% -------------------------
+% PARAMETER ADAPTION MODEL
+% -------------------------
+adaption_1;   BOOLEAN
+adaption_2;   BOOLEAN
+adaption_3;   BOOLEAN
+
+% -------------------------
+% Graphs
+% -------------------------
+
+%   - ANALYSIS -
+graph_bel_hr;							REAL
+graph_bel_starting_dir;		{POS}
+graph_bel_breathing_f;    REAL
+graph_breathing_f_error;  REAL
+graph_bel_used_chest_range; REAL
+%graph_d_hr;								REAL
+%graph_d_bf;								REAL
+graph_stable_bf;          BOOLEAN
+graph_stable_hr;          BOOLEAN
+%graph_bel_prev_ps;				REAL
+%graph_original_hr;				REAL
+graph_bel_anxiety;				REAL
+
+
+%   - SUPPORT -
+graph_des_breathing_f;		REAL
+graph_des_starting_dir;		{POS}
+graph_breathing_f_diff;		REAL
+graph_bel_phi;								REAL
