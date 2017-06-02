@@ -69,7 +69,7 @@ function result = chest_c( model, trace, parameters, t )
     %todo deze formula uitleggen of uitwerken
   if REAL_TIME_INPUT
     br = trace(t).breathingvalue.arg{1};
-    curr_chest_c = -br^2 * 10 + 60;
+    curr_chest_c = br^4 * 14 + 60;
   end
 
 
@@ -111,7 +111,7 @@ end
 function result = obs_hr( model, trace, parameters, t )
   % for the default domain model
   % hr = trace(t+1).hr.arg{1};
-  hr = 65;
+  hr = 75;
   result = {t+1, 'observe', predicate('hr',hr)};
 end
 % function result = obs_hr_pos( model, trace, parameters, t )
@@ -481,8 +481,8 @@ function result = bel_anxiety( model, trace, parameters, t )
     end
     disp('saving traces')
     ra = int2str(rand(1,1)*100);
-    name1 = strcat('data/calculated/bb_c1_v',ra,'.csv');
-    name2 = strcat('data/calculated/hr_c1_v',ra,'.csv');
+    name1 = strcat('data/calculated/bb_c2_v',ra,'.csv');
+    name2 = strcat('data/calculated/hr_c2_v',ra,'.csv');
     csvwrite(name1,bb);
     csvwrite(name2,hrr);
   end
@@ -869,37 +869,6 @@ function result = adaptions_chest_c_range( model, trace, parameters, t )
   result = {t+1, 'adaption_2', change};
 end
 
-function result = adaption_dt( model, trace, parameters, t )
-  % change dt when a timestap takes more time
-  dt = model.parameters.default.dt;
-  dt_plus = model.parameters.default.dt_plus;
-  measured_dt = toc;
-  tic;
-
-  global REAL_TIME_INPUT
-  if REAL_TIME_INPUT
-    if dt > measured_dt
-      model.parameters.default.dt = measured_dt + dt_plus;
-      disp('dt++')
-      measured_dt
-    else
-      % measured_dt <= dt
-      % disp(measured_dt - dt)
-      pause(dt - measured_dt);
-    end
-    if mod(t,100) == 0
-      disp('current dt:')
-      measured_dt
-    end
-  end
-  % voor discussie
-  % dt aanpassen leidt tot meetfouten bij o.a. frequenties
-  % dit kan opgelost worden door van dt een concpept te maken
-  % en oude waardes op te slaan in de trace
-  % het bepalen van gemiddelde frequenties kan dan gedaan worden i.c.m. dt
-  result = {t+1, 'adaption_3', false};
-end
-
 % function result = adaption_dt( model, trace, parameters, t )
 %   % change dt when a timestap takes more time
 %   dt = model.parameters.default.dt;
@@ -907,19 +876,16 @@ end
 %   measured_dt = toc;
 %   tic;
 %
-%   global REAL_TIME_INPUT LIMIT_DT
-%   if REAL_TIME_INPUT && t > 20 %new2
-%     if measured_dt > dt
-%       if measured_dt > LIMIT_DT + dt_plus, measured_dt = LIMIT_DT; disp('measured_dt > LIMIT_DT!'); end;
+%   global REAL_TIME_INPUT
+%   if REAL_TIME_INPUT
+%     if dt > measured_dt
 %       model.parameters.default.dt = measured_dt + dt_plus;
 %       disp('dt++')
-%       dt
 %       measured_dt
 %     else
 %       % measured_dt <= dt
+%       % disp(measured_dt - dt)
 %       pause(dt - measured_dt);
-%
-%
 %     end
 %     if mod(t,100) == 0
 %       disp('current dt:')
@@ -933,6 +899,40 @@ end
 %   % het bepalen van gemiddelde frequenties kan dan gedaan worden i.c.m. dt
 %   result = {t+1, 'adaption_3', false};
 % end
+
+function result = adaption_dt( model, trace, parameters, t )
+  % change dt when a timestap takes more time
+  dt = model.parameters.default.dt;
+  dt_plus = model.parameters.default.dt_plus;
+  measured_dt = toc;
+  tic;
+
+  global REAL_TIME_INPUT LIMIT_DT
+  if REAL_TIME_INPUT && t > 20 %new2
+    if measured_dt > dt
+      if measured_dt > LIMIT_DT + dt_plus, measured_dt = LIMIT_DT; disp('measured_dt > LIMIT_DT!'); end;
+      model.parameters.default.dt = measured_dt + dt_plus;
+      % disp('dt++')
+      % dt
+      % measured_dt
+    else
+      % measured_dt <= dt
+      pause(dt - measured_dt);
+
+
+    end
+    if mod(t,100) == 0
+      % disp('current dt:')
+      % measured_dt
+    end
+  end
+  % voor discussie
+  % dt aanpassen leidt tot meetfouten bij o.a. frequenties
+  % dit kan opgelost worden door van dt een concpept te maken
+  % en oude waardes op te slaan in de trace
+  % het bepalen van gemiddelde frequenties kan dan gedaan worden i.c.m. dt
+  result = {t+1, 'adaption_3', false};
+end
 
 
 %
@@ -982,14 +982,14 @@ end
 %
 % % Starting direction, physical state, original_hr, anxiety
 %
-% function result = graph_bel_starting_dir( model, trace, parameters, t )
-%   if t == 1
-%     chest_pos = '1 in';
-%   else
-%     chest_pos = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
-%   end
-%   result = {t+1, 'graph_bel_starting_dir', {chest_pos}};
-% end
+function result = graph_bel_starting_dir( model, trace, parameters, t )
+  if t == 1
+    chest_pos = '1 in';
+  else
+    chest_pos = l2.getall(trace, t+1, 'belief', predicate('starting_dir', NaN)).arg{1}.arg{1};
+  end
+  result = {t+1, 'graph_bel_starting_dir', {chest_pos}};
+end
 function result = graph_bel_anxiety( model, trace, parameters, t )
   h = l2.getall(trace, t+1, 'belief', predicate('anxiety', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_bel_anxiety', h};
@@ -1027,11 +1027,11 @@ function result = graph_des_bf( model, trace, parameters, t )
   x = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_des_breathing_f', x};
 end
-% function result = graph_breathing_f_diff( model, trace, parameters, t )
-%   bel_bf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
-%   des_bf = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
-%   result = {t+1, 'graph_breathing_f_diff', bel_bf - des_bf};
-% end
+function result = graph_breathing_f_diff( model, trace, parameters, t )
+  bel_bf = l2.getall(trace, t+1, 'belief', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  des_bf = l2.getall(trace, t+1, 'desire', predicate('breathing_f', NaN)).arg{1}.arg{1};
+  result = {t+1, 'graph_breathing_f_diff', bel_bf - des_bf};
+end
 function result = graph_des_starting_dir( model, trace, parameters, t )
   x = l2.getall(trace, t+1, 'desire', predicate('starting_dir', NaN)).arg{1}.arg{1};
   result = {t+1, 'graph_des_starting_dir', x};

@@ -5,7 +5,7 @@ global N REAL_TIME_INPUT TRAINING SOUND SAVE_DATA LIMIT_DT
 % CONFIG
 % -------------------------
 
-N               = 150;     % number of timesteps to render
+N               = 400;     % number of timesteps to render
 SOUND           = true;    % use audio feedback for support
 REAL_TIME_INPUT = true;   % use realtime input data
 TRAINING        = false;   % use previously generated input from csv
