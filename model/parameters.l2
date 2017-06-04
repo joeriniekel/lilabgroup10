@@ -51,8 +51,9 @@ default (
   default_b;          -0.0204
   default_c;          1.1615
 
-  hr_breathing_exp;   1.0
-  breathing_anxiety;  1.0
+  %hr_breathing_exp;   1.0
+  %breathing_anxiety;  1.0
+      % weghalen?? -- - - 
 
   % ANALYSIS MODEL
   chest_c_margin;     0.05
