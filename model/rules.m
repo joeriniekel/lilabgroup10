@@ -6,7 +6,6 @@ function [ fncs ] = rules()    % DO NOT EDIt
 end
 
 
-% chest_c in cm = voltage * 10 + 50?
 
 % ---------------------------------------------------------------
 %
@@ -52,10 +51,6 @@ function result = hr_var( model, trace, parameters, t )
   % hr_var = the amount of bpm that will be 'added' or 'subtracted'
 
   d = model.parameters.default.disfac_hr_var;
-  % anxiety  = trace(t+1).anxiety.arg{1};
-  % a        = model.parameters.default.anxiety_hr_var;
-  % hr_var = d * rand + a * anxiety * rand;
-
   hr_var = d * rand;
 
   result = {t+1, 'hr_var', hr_var};
@@ -64,11 +59,7 @@ end
 function result = hr( model, trace, parameters, t )
   % in bpm, between 0 and 250
   ps      = trace(t).ps.arg{1}; % t+1 doesn't work with this syntax + scenario values
-
   hr_var  = trace(t+1).hr_var.arg{1};
-  % anxiety = trace(t+1).anxiety.arg{1};
-  % a       = model.parameters.default.anxiety_hr;
-
   bhr     = model.parameters.default.bhr;
   lhr     = model.parameters.default.lhr;
 
@@ -100,7 +91,6 @@ function result = hr_pos( model, trace, parameters, t )
   result = {t+1, 'hr_pos', pos};
 end
 
-%new
 function result = breathing_f( model, trace, parameters, t )
   % between 0 and 4 (params.high_bf)
   % hr does not have to be translated to bpm because the formula with ax bx c is used
@@ -120,7 +110,6 @@ function result = breathing_f( model, trace, parameters, t )
   result = {t+1, 'breathing_f', breathing_f};
 end
 
-%new
 function result = br_intensity( model, trace, parameters, t )
   % range = [0;1]
   dispos = trace(t).dispos_br_i.arg{1};  %t+1 doesn't work for scenario predicates
@@ -132,7 +121,6 @@ function result = br_intensity( model, trace, parameters, t )
   result = {t+1, 'br_intensity', br_intensity};
 end
 
-%new
 function result = used_chest_range( model, trace, parameters, t )
   % range = [0;1]
   % if higher than 1; subject is breathing more intensely than healthy
@@ -158,7 +146,6 @@ function result = chest_c( model, trace, parameters, t )
   % y(t) = A sin(2 pi f t dt + phi)
   curr_chest_c = A * sin(2*pi* f * dt + phi) + avg_chest_c;
 
-  %new
   % assume that user always listens to support
   dir = trace(t+1).mind.arg{1}; %new
   if strcmp(dir,'1 in')
@@ -182,6 +169,7 @@ function result = chest_c( model, trace, parameters, t )
   global TRAINING;
   global TRAINING_BF;
   if TRAINING,    curr_chest_c = TRAINING_BF(t) * 10 + 50;  end;
+      %actually 50 - TRAINING_BF(t) * 10, dependent on the subject
 
   % real time graphs
   global CHEST_Y1 PLOT_CHEST1  %CHEST_Y2  RT_CHEST2
@@ -198,7 +186,6 @@ function result = chest_c( model, trace, parameters, t )
   % elseif t == 2
   %   curr_chest_c = max;
   % end
-
   result = {t+1, 'chest_c', curr_chest_c};
 end
 
@@ -239,7 +226,6 @@ function result = performance( model, trace, parameters, t )
 end
 
 
-%new relative_chest_c ipv prev...
 function result = relative_c( model, trace, parameters, t )
   %the previous value of chest_c, relative to the preferred/used chest_range
   chest_c     = trace(t+1).chest_c.arg{1};            % 60-80
@@ -257,7 +243,6 @@ function result = relative_c( model, trace, parameters, t )
 end
 %new
 
-%new prev...
 function result = phase_shift( model, trace, parameters, t )
   %phase_shift of chest_c-cycle on t-1,
   % value will be used in (t-1) to calculate chest_c
@@ -304,7 +289,6 @@ function result = phase_shift( model, trace, parameters, t )
   % phi
   result = {t+1, 'phase_shift', phi}; % + 0.25*pi
 end
-%new
 
 
 
@@ -358,13 +342,11 @@ function result = bel_chest_c( model, trace, parameters, t )
   result = {t+1, 'belief', predicate('chest_c',chest_c)};
 end
 
-%new
 function result = bel_hr_pos( model, trace, parameters, t )
   hr_pos = trace(t+1).hr_pos.arg{1};
   result = {t+1, 'belief', predicate('hr_pos',hr_pos)};
 end
 
-%new
 function result = bel_starting_dir( model, trace, parameters, t )
   if t < 3
     % t
@@ -642,7 +624,7 @@ function result = bel_d_bf( model, trace, parameters, t )
   end
   result = {t+1, 'belief', predicate('d_bf', d)};
 end
-%new
+
 function result = bel_d_hr( model, trace, parameters, t )
   % qualitative: keep track of whether hr is increasing or decreasing
   % prev_d  = l2.getall(trace, t, 'belief', predicate('d_hr', NaN)).arg{1}.arg{1};
@@ -658,8 +640,6 @@ function result = bel_d_hr( model, trace, parameters, t )
   end
   result = {t+1, 'belief', predicate('d_hr', d)};
 end
-
-% n_cycles = 5 todo
 
 function result = bel_stable_bf( model, trace, parameters, t )
   % check if bf has both increased and decreased in a certain interval
@@ -971,7 +951,7 @@ function result = support( model, trace, parameters, t )
   %-------- Real time synthesis - can be igored in the rules --------
   %------------------------------------------------------------------
   global SOUND
-  if SOUND
+  if assessment && SOUND
     dt = model.parameters.default.dt;
     hi_f = 3456; % 8*432    %800 1200
     lo_f = 432; %432 ipv 440
@@ -1048,7 +1028,7 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
   assessment = trace(t+1).assessment.arg{1};
   skip  = model.parameters.default.pa_skip_n_time_steps;
   %skip the first 10 timesteps and skip a minimum of 3 timesteps
-  if ~assessment && t>3+skip
+  if ~assessment && t>2+skip
     lhr    = model.parameters.default.lhr;
     dt     = model.parameters.default.dt;
     time   = 1/dt * model.parameters.default.pa_time; % the review time
@@ -1057,7 +1037,7 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
     if time>t,time=t;end;
     hrs = [];
     bfs = [];
-    for i=1:3
+    for i=1:2
       % pick a random sample in the last x timesteps
       sample = t+1 - round(time * rand);
       hr = l2.getall(trace, sample, 'belief', predicate('hr', NaN)).arg{1}.arg{1};
@@ -1065,12 +1045,12 @@ function result = adaptions_hr_bf( model, trace, parameters, t )
       hrs(i) = hr;
       bfs(i) = bf;
     end
-    if sum(hrs)>lhr*3 && sum(bfs) > 0 && t > 30
+    if sum(hrs)>lhr*2 && sum(bfs) > 0 %&& t > 30
 
       % disp(length(hrs))
       x1 = hrs(1);    y1 = bfs(1);
       x2 = hrs(2);    y2 = bfs(2);
-      %x3 and %y3 are unused
+      %x3 and %y3 are unused (only b and c can be altered)
 
       if x1 > x2 + margin || x1 < x2 - margin
         % update the necessary params
