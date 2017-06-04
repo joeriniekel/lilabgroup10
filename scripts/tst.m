@@ -1,4 +1,20 @@
 %%
+close all, clear all, clc
+x = linspace(0,1.2);
+line([1 1],get(axes,'YLim'),'Color',[1 0 0]); hold on
+f1 = 2.1;
+phi = asin(sin(2*pi*1*f1));
+
+f2 = 1.5;
+plot(x,0.5 + 0.5*sin(2*pi*x*f1)); hold on
+plot(x,0.5 + 0.5*sin(2*pi*(x+1)*f2 + phi)); hold on
+axis([0 1.5 0 1])
+legend('t2=0','original sine','altered sine')
+
+
+
+
+%%
 prev_chest_c = 79.8;
 avg_chest_c = 70;
 range = 19;
